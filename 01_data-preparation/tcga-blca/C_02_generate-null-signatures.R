@@ -26,7 +26,7 @@ generate_null_sig <- function(names, signature) {
 
 # Load Data ---------------------------------------------------------------
 
-blca <- read_rds("./data/02_normalized-counts.Rds")
+blca <- read_rds("./data/tcga-blca/A_02_normalized-counts.Rds")
 
 
 # Remove Blank HGNC IDs ---------------------------------------------------
@@ -36,7 +36,7 @@ blca <- blca[(rownames(blca) != "" & !is.na(rownames(blca))), ]
 
 # Load Signatures ---------------------------------------------------------
 
-signatures <- read_rds("./data/signatures/merged-signatures.Rds")
+signatures <- read_rds("./data/signatures/signatures.Rds")
 
 
 # Generate Null Signatures ------------------------------------------------
@@ -48,4 +48,4 @@ signatures <- c(signatures, signatures_null)
 
 # Export ------------------------------------------------------------------
 
-write_rds(signatures, "./data/tcga-blca/C_03_signatures-with-null.Rds")
+write_rds(signatures, "./data/tcga-blca/C_02_signatures-with-null.Rds")

@@ -12,13 +12,13 @@ library(DESeq2)
 
 # Read in Data ------------------------------------------------------------
 
-blca <- read_rds("./data/A_02_normalized-counts.Rds")
+blca <- read_rds("./data/tcga-blca/A_02_normalized-counts.Rds")
 
 blca_coldata <- blca %>%
         colData() %>%
         as_tibble(rownames = "sample")
 
-gsva <- read_rds("./data/tcga-blca/C_04_gsva-scores.Rds") %>%
+gsva <- read_rds("./data/tcga-blca/C_03_gsva-scores.Rds") %>%
         t() %>%
         as_tibble(rownames = "sample")
 
@@ -27,4 +27,4 @@ joined <- inner_join(blca_coldata, gsva, by = "sample")
 
 # Write -------------------------------------------------------------------
 
-write_rds(joined, "./data/C_05_merge-gsva.rds")
+write_rds(joined, "./data/C_04_merge-gsva.rds")

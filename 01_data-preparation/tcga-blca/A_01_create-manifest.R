@@ -3,13 +3,13 @@
 
 # Creates a manifest of files to download
 
-# supData: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5687509/bin/NIHMS911030-supplement-9.xlsx
-
+# supData: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5687509/bin/NIHMS911030-supplement-8.xlsx
 
 
 # Prepare Workspace -------------------------------------------------------
 
-library(tidyverse)          # Quality of life
+library(dplyr)              # Quality of life
+library(readr)              # Writing CSV
 library(GenomicDataCommons) # Getting data
 library(TCGAutils)          # For conversion of UUIDs to TCGA IDs
 library(readxl)             # For reading in supplementary data
@@ -33,7 +33,7 @@ geManifest <- files() %>%
         mutate(path = paste(.$id, .$filename, sep = "/"))
 
 supData <- 
-        read_xlsx("./data/tcga-blca/TCGA_BLCA_supplementary-data_formatted-clinical-data.xlsx", 
+        read_xlsx("./data/tcga-blca/NIHMS911030-supplement-8.xlsx", 
                   sheet = 2) %>%
         dplyr::filter(`RNA Seq` == "Yes") %>%
         dplyr::select(`Case ID`, `mRNA cluster`)

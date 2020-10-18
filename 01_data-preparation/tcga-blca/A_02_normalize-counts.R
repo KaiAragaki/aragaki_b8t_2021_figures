@@ -12,22 +12,23 @@ library(tidyverse)          # Quality of Life
 library(DESeq2)             # DEGS, clustering
 library(readxl)             # For reading in normalized counts for HGCN ID
 library(biomaRt)            # Get HGCN, ensembl, etc IDs
+library(GenomicDataCommons) # Get data
 
 
 # Download Files ----------------------------------------------------------
 
 geManifest <- read_csv('./data/tcga-blca/A_01_manifest.csv') %>%
         mutate(shortID = tolower(shortID))
-# gdc_set_cache()
+gdc_set_cache("./data/gdcdata")
 fnames <- lapply(geManifest$id, gdcdata)
 
 
 # Attach Tumor Calls and Clinical Data ------------------------------------
 
-clin <- read_csv("./data/tcga-blca/Broad_TCGA_BLCA_clinical.csv")
+clin <- read_csv("./data/tcga-blca/B_01_tidy-clinical.csv")
 
 tumorData <- geManifest %>%
-        select(c(1, 6, 8, 9))
+        dplyr::select(c(1, 6, 8, 9)) %>% 
         left_join(clin, by = c("shortID" = "patient.bcr_patient_barcode")) %>% 
         mutate(shortID = toupper(shortID)) 
 

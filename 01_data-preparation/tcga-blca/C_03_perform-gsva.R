@@ -14,7 +14,7 @@ library(GSVA)
 # Load Dataframes ---------------------------------------------------------
 
 blca <- read_rds("./data/tcga-blca/A_02_normalized-counts.Rds")
-signatures <- read_rds("./data/tcga-blca/C_03_signatures-with-null.Rds")
+signatures <- read_rds("./data/tcga-blca/C_02_signatures-with-null.Rds")
 
 
 # Run GSVA ----------------------------------------------------------------
@@ -24,4 +24,4 @@ per_tumor_signature <- gsva(assay(blca,2), signatures, mx.diff = T, kcdf = "Pois
 
 # Export GSVA -------------------------------------------------------------
 
-write_rds(per_tumor_signature, "./data/tcga-blca/C_04_gsva-scores.Rds")
+write_rds(per_tumor_signature, "./data/tcga-blca/C_03_gsva-scores.Rds")

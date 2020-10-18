@@ -3,16 +3,19 @@
 
 # This file tidies the TCGA BLCA clinical data
 # Last downloaded from Broad Firehose 2020-10-06
-
+# http://gdac.broadinstitute.org/runs/stddata__2016_01_28/data/BLCA/20160128/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz
 
 # Prepare Workspace -------------------------------------------------------
 
-library(tidyverse)
+library(readr)
+library(dplyr)
 
 
 # Read in Data ------------------------------------------------------------
 
-clinical <- read_tsv("./data/tcga-blca/BLCA.clin.merged.txt", col_names = F) %>% 
+untar("./data/tcga-blca/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz", exdir = "./data/tcga-blca/")
+
+clinical <- read_tsv("./data/tcga-blca/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0/BLCA.clin.merged.txt", col_names = F) %>% 
         t()
 
 colnames(clinical) <- clinical[1,]

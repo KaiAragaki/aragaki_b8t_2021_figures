@@ -1,4 +1,4 @@
-# Tidy non-standard signatures for GSVA:
+# Tidy signatures for GSVA:
 
 # Pan B-Cell Signature
 # Danaher et al.
@@ -28,4 +28,4 @@ signatures <- list(b_cell = sig_b_cell, cd8_t_eff = sig_cd8_t_eff)
 
 # Write -------------------------------------------------------------------
 
-write_rds(signatures, "./data/signatures/nonstandard-signatures.Rds")
+write_rds(signatures, "./data/signatures/signatures.Rds")
