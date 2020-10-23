@@ -28,4 +28,4 @@ colData(blca) <- DataFrame(joined)
 
 # Write -------------------------------------------------------------------
 
-write_rds(blca, "./data/C_04_merge-gsva.rds")
+write_rds(blca, "./data/tcga-blca/C_04_merge-gsva.rds")
