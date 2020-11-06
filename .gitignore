@@ -6,3 +6,8 @@ data/signatures/*
 data/tcga-blca/*
 data/gdcdata/*
 data/imvigor210/*
+data/tcga-skcm/*
+data/riaz/*
+data/liu/*
+data/van-allen/*
+data/tcga-luad/*
