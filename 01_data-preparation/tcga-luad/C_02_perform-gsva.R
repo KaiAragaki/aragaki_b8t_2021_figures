@@ -1,7 +1,7 @@
 
 # Description -------------------------------------------------------------
 
-# Run GSVA using tidy-signatures.Rds and TCGA SKCM
+# Run GSVA using tidy-signatures.Rds and TCGA LUAD
 
 
 # Prepare Workspace -------------------------------------------------------
@@ -13,13 +13,13 @@ library(GSVA)
 
 # Load Dataframes ---------------------------------------------------------
 
-skcm <- read_rds("./data/tcga-luad/A_02_normalized-counts.Rds")
+luad <- read_rds("./data/tcga-luad/A_02_normalized-counts.Rds")
 signatures <- read_rds("./data/tcga-luad/C_01_signatures-with-null.Rds")
 
 
 # Run GSVA ----------------------------------------------------------------
 
-per_tumor_sig <-  gsva(assay(skcm, 2), signatures, mx.diff = T, kcdf = "Gaussian")
+per_tumor_sig <-  gsva(assay(luad, 2), signatures, mx.diff = T, kcdf = "Gaussian")
 
 
 # Export GSVA -------------------------------------------------------------

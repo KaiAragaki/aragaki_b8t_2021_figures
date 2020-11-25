@@ -174,6 +174,48 @@ mt <- pairwise_survdiff(Surv(new_death, death_event) ~ b8t_s, data = col_data_se
         mutate(adj = p.adjust(p.value, "fdr"))
 
 
+
+# Compare Hi-Lo vs All others ----------------------------------------
+
+col_data_2 <- col_data %>% 
+        mutate(is_hi_lo = if_else(b8t == "hi_lo", T, F))
+
+col_data_2_male <- filter(col_data_2, patient.gender == "male")
+
+ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender + is_hi_lo, data = col_data_2_male) %>% 
+        ggsurvplot(pval = T, 
+                   risk.table = T, surv.median.line = "hv",
+                   risk.table.height = 0.22,
+                   risk.table.title = "No. at risk",
+                   legend = "right",
+                   xlab = "Overall Survival (Months)", 
+                   xscale = 30,
+                   break.x.by = 300,
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 10,
+                   xlim = c(0, 1800),
+                   pval.coord = c(0, 0.05))
+
+col_data_2_female <- filter(col_data_2, patient.gender == "female")
+
+ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender + is_hi_lo, data = col_data_2_female) %>% 
+        ggsurvplot(pval = T, 
+                   risk.table = T, surv.median.line = "hv",
+                   risk.table.height = 0.22,
+                   risk.table.title = "No. at risk",
+                   legend = "right",
+                   xlab = "Overall Survival (Months)", 
+                   xscale = 30,
+                   break.x.by = 300,
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 10,
+                   xlim = c(0, 1800),
+                   pval.coord = c(0, 0.05))
+
+
+
 # Fig S5e Compare Sex Outcomes Between B8T Hi/Hi --------------------------
 
 fig_s5e <- col_data %>% 

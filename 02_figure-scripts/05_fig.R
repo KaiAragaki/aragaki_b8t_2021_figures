@@ -31,7 +31,6 @@ col_data <- colData(blca) %>%
                patient.gender = factor(patient.gender, levels = c("male", "female")))
 
 
-
 # Fig 5a: B8T vs TCGA BLCA Survival ---------------------------------------
 
 png(filename = "./figures/fig_5/fig_5a.png", width = 5.5, height = 5.5, units = "in", res = 288)
@@ -68,8 +67,8 @@ fig_5b <- col_data %>%
         filter(patient.gender == "female")
 
 png(filename = "./figures/fig_5/fig_5b.png", width = 5.5, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5b) %>% 
-        ggsurvplot(pval = T, 
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = mysample) %>% 
+        ggsurvplot(pval = T,
                    palette = viridis(4, end = 0.95, direction = -1),
                    risk.table = T,
                    risk.table.height = 0.3,

@@ -13,9 +13,9 @@ library(DESeq2)
 # Read in Data ------------------------------------------------------------
 
 
-skcm <- read_rds("./data/tcga-luad/A_02_normalized-counts.Rds")
+luad <- read_rds("./data/tcga-luad/A_02_normalized-counts.Rds")
 
-skcm_coldata <- skcm %>%
+luad_coldata <- luad %>%
         colData() %>%
         as_tibble(rownames = "sample")
 
