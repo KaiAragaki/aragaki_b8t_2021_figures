@@ -139,7 +139,6 @@ merged_annot <- left_join(merged_exp, annot, by = c("gene" = "nuID")) %>%
         relocate(contains("symbol"), .before = "gene")
 
 
-
 signatures <- read_rds("./data/signatures/signatures.Rds")
 signatures$b_cell[5] <- "KIAA0125" # Old HGNC used
 
@@ -174,19 +173,12 @@ ggplot(merged_long, aes(x = value, fill = dataset)) + geom_histogram(alpha = 0.5
 
 # Put the tidy probes back in to main expression matrix
 
-probes <- probes_of_interest %>% 
-        ungroup() %>% 
-        select(-c(num_na, symbol))
-
 expression <- filter(merged_annot, !(gene %in% probes_of_interest$gene)) %>% 
         bind_rows(probes_of_interest) %>% 
         group_by(symbol) %>% 
         arrange(symbol, num_na) %>% 
         fill(everything(), .direction = "downup") %>% 
         distinct(symbol, .keep_all = T)
-        
-        
-
 
 expression_mat <- expression %>% 
         select(-gene, -num_na) %>% 
@@ -217,4 +209,5 @@ biplot(pca(combat, metadata = color_key), colby = 'group', showLoadings = T, lab
 
 # Write Merged Dataset -----------------------------------------------
 
-write_tsv(merged, file = "./data/merged/kim_sjodahl_choi.tsv")
+write_tsv(merged, file = "./data/merged/kim_sjodahl_choi_merged-clin.tsv")
+write_rds(combat, file = "./data/merged/kim_sjodahl_choi_merged-exp.Rds", compress = "gz")
