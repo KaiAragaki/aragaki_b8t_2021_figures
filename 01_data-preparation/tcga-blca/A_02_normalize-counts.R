@@ -1,8 +1,6 @@
 
 # Description -------------------------------------------------------------
 
-# Hi Jerry
-
 # This file will take the outputs of A_01_create-manifest.R and 
 # B_01_tidy-clinical.R, merges them, adds HGCN identifiers, and normalizes counts.
 # These files will be written as an .Rds
