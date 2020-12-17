@@ -23,7 +23,8 @@ counts <- read.delim(counts)
 genes <- sharepoint_get("https://livejohnshopkins.sharepoint.com/sites/GBCIStorage/Shared%20Documents/Datasets/ImVigor210/IMvigor210geneannot.txt", token)
 genes <- read.delim(genes)
 
-dds <- DESeqDataSetFromMatrix(as.matrix(counts), clin, design = ~1, rowData = genes)
+dds <- DESeqDataSetFromMatrix(as.matrix(counts), clin, design = ~1, 
+                              rowData = genes)
 
 
 # Write Data --------------------------------------------------------------
