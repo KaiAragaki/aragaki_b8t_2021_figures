@@ -22,12 +22,10 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
         mutate(Best.Confirmed.Overall.Response = factor(Best.Confirmed.Overall.Response, 
-                                                        levels = c("CR", "PR", "SD", "PD", "NE"))) %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
-               b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
+                                                        levels = c("CR", "PR", "SD", "PD", "NE"))) %>%
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")))
 

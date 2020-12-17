@@ -22,7 +22,7 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                Best.Confirmed.Overall.Response = factor(Best.Confirmed.Overall.Response, 
                                                         levels = c("CR", "PR", "SD", "PD", "NE"))) %>% 
@@ -69,7 +69,7 @@ fig_2b <- col_data %>%
 labels <- c("TMB Lo", "TMB Hi")
 names(labels) <- c("Lo", "Hi")
 
-ggplot(fig_2b, aes(x = b_cell, y = cd8_t_eff, color = log2(FMOne.mutation.burden.per.MB + 1))) + 
+ggplot(fig_2b, aes(x = b_cell, y = cd8_rose, color = log2(FMOne.mutation.burden.per.MB + 1))) + 
         geom_point(size = 7, alpha = 0.7) + 
         scale_color_viridis_c(end = 0.95) + 
         facet_wrap(~tmb_bins, labeller = labeller(tmb_bins = labels)) + 

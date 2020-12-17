@@ -26,7 +26,7 @@ riaz <- read_rds("./data/riaz/05_merge-colData.rds") %>%
                Cohort, 
                Dead.Alive...Dead...True., 
                Time.to.Death...weeks., 
-               b_cell_spec:cd8_t_eff_null) %>% 
+               b_cell_spec:cd8_rose_null) %>% 
         mutate(Cohort = if_else(Cohort == "NIV3-NAIVE", F, T)) %>% 
         dplyr::rename(response = Response,
                       prior_ctla4 = Cohort,
@@ -35,7 +35,7 @@ riaz <- read_rds("./data/riaz/05_merge-colData.rds") %>%
 
 liu <- read_rds("./data/liu/04_merge-colData.Rds") %>% 
         filter(biopsyContext..1.Pre.Ipi..2.On.Ipi..3.Pre.PD1..4.On.PD1. == 3) %>% 
-        select(sample, BR, OS, dead, priorCTLA4, b_cell_spec:cd8_t_eff_null) %>% 
+        select(sample, BR, OS, dead, priorCTLA4, b_cell_spec:cd8_rose_null) %>% 
         mutate(OS = OS/7,
                dead = as.logical(dead),
                priorCTLA4 = as.logical(priorCTLA4)) %>% 
@@ -47,10 +47,10 @@ liu <- read_rds("./data/liu/04_merge-colData.Rds") %>%
 col_data <- bind_rows(riaz, liu)
 
 col_data <- col_data %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                b_bin_spec = if_else(b_cell_spec > 0, "hi", "lo"),
-               t_bin_spec = if_else(cd8_t_eff_spec > 0, "hi", "lo")) %>% 
+               t_bin_spec = if_else(cd8_rose_spec > 0, "hi", "lo")) %>% 
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         unite(b8t_spec, b_bin_spec, t_bin_spec, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")),

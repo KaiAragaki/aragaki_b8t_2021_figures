@@ -18,7 +18,7 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                tmb_bins = if_else(FMOne.mutation.burden.per.MB < 10, "Lo", "Hi"),
                tmb_bins = factor(tmb_bins, levels = c("Lo", "Hi")),

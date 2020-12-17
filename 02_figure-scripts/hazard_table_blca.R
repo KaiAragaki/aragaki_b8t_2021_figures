@@ -18,7 +18,7 @@ blca <- read_rds("./data/tcga-blca/C_04_merge-gsva.rds")
 
 clin <- as_tibble(colData(blca)) %>% 
         mutate(b.bin = if_else(b_cell > 0, "hi", "lo"),
-               t.bin = if_else(cd8_t_eff > 0, "hi", "lo")) %>% 
+               t.bin = if_else(cd8_rose > 0, "hi", "lo")) %>% 
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(sex = patient.gender,
                race = patient.race_list.race) %>% 
