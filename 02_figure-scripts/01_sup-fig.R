@@ -40,12 +40,10 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
         mutate(Best.Confirmed.Overall.Response = factor(Best.Confirmed.Overall.Response, 
-                                                        levels = c("CR", "PR", "SD", "PD", "NE"))) %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
-               b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
+                                                        levels = c("CR", "PR", "SD", "PD", "NE"))) %>%
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")))
 
@@ -89,14 +87,14 @@ ggplot(fig_s1a, aes(x = Best.Confirmed.Overall.Response,
         annotation_custom(text_grob(label = starify(cr_pr$p.value), 
                                     hjust = 0, 
                                     size = 30), 
-                          min = 1.15, ymax = 1.15, xmin = 1.43, xmax = 1.43) +
+                          ymin = 1.15, ymax = 1.15, xmin = 1.43, xmax = 1.43) +
         annotation_custom(text_grob(label = starify(cr_sd$p.value), 
                                     hjust = 0, 
-                                    size = 20), 
+                                    size = 30), 
                           ymin = 1.5, ymax = 1.5, xmin = 1.83, xmax = 1.83) +
         annotation_custom(text_grob(label = starify(cr_sd$p.value), 
                                     hjust = 0, 
-                                    size = 20), 
+                                    size = 30), 
                           ymin = 1.8, ymax = 1.8, xmin = 2.33, xmax = 2.33) +
         compare_bar(1, 2, 1.1) +
         compare_bar(1, 3, 1.4) +
@@ -127,7 +125,7 @@ fig_s1b <- col_data %>%
 fig_s1b_stat <- 
         fig_s1b %>% 
         pivot_wider(names_from = Best.Confirmed.Overall.Response, 
-                    values_from = cd8_t_eff)
+                    values_from = cd8_rose)
 
 cr_pr <- 
         t.test(fig_s1b_stat$CR, 
@@ -150,7 +148,7 @@ table_fig_s1b <-
         as.data.frame()
 
 ggplot(fig_s1b, aes(x = Best.Confirmed.Overall.Response, 
-                   y = cd8_t_eff, 
+                   y = cd8_rose, 
                    color = Best.Confirmed.Overall.Response, 
                    fill = Best.Confirmed.Overall.Response)) +
         geom_boxplot(alpha = 1, color = "black", lwd = .75) + 
@@ -172,10 +170,10 @@ ggplot(fig_s1b, aes(x = Best.Confirmed.Overall.Response,
         compare_bar(1, 2, 1.1) +
         compare_bar(1, 3, 1.4) +
         compare_bar(1, 4, 1.7) +
-        geom_text(aes(x = 1, y = 2.1, label = paste0("(", CR, ")")), data = table_fig_1b, size = 6, inherit.aes = F) + 
-        geom_text(aes(x = 2, y = 2.1, label = paste0("(", PR, ")")), data = table_fig_1b, size = 6, inherit.aes = F) + 
-        geom_text(aes(x = 3, y = 2.1, label = paste0("(", SD, ")")), data = table_fig_1b, size = 6, inherit.aes = F) + 
-        geom_text(aes(x = 4, y = 2.1, label = paste0("(", PD, ")")), data = table_fig_1b, size = 6, inherit.aes = F) + 
+        geom_text(aes(x = 1, y = 2.1, label = paste0("(", CR, ")")), data = table_fig_s1b, size = 6, inherit.aes = F) + 
+        geom_text(aes(x = 2, y = 2.1, label = paste0("(", PR, ")")), data = table_fig_s1b, size = 6, inherit.aes = F) + 
+        geom_text(aes(x = 3, y = 2.1, label = paste0("(", SD, ")")), data = table_fig_s1b, size = 6, inherit.aes = F) + 
+        geom_text(aes(x = 4, y = 2.1, label = paste0("(", PD, ")")), data = table_fig_s1b, size = 6, inherit.aes = F) + 
         theme(text = element_text(size = 25),
               legend.position = "none",
               panel.grid = element_blank(),
