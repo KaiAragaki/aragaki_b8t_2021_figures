@@ -1,7 +1,9 @@
 
 # Description -------------------------------------------------------------
 
-# Figure 1: The B8T signature stratifies patients with advanced urothelial carcinoma into cohorts with different OS in response to anti-PD-L1 therapy
+# Figure 1: The B8T signature stratifies patients with advanced urothelial 
+# carcinoma into cohorts with different OS in response to anti-PD-L1 
+# therapy
 
 
 # Prepare Workspace -------------------------------------------------------

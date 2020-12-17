@@ -5,6 +5,7 @@
 # Last downloaded from Broad Firehose 2020-10-06
 # http://gdac.broadinstitute.org/runs/stddata__2016_01_28/data/BLCA/20160128/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz
 
+
 # Prepare Workspace -------------------------------------------------------
 
 library(readr)
@@ -62,7 +63,8 @@ fl <-
         select(contains("days_to_last_followup")) %>% 
         get_latest()
 
-all_clin <- tibble(death, fl, .name_repair = "unique") %>% 
+all_clin <- 
+        tibble(death, fl, .name_repair = "unique") %>% 
         `colnames<-`(c('death_days', 'followUp_days')) %>% 
         mutate(new_death = if_else(is.na(death_days), followUp_days, death_days),
                death_event = if_else(clinical$patient.vital_status == 'dead'|!is.na(death_days), 1, 0)) %>% 
