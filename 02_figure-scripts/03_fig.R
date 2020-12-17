@@ -25,7 +25,7 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                tmb_bins = if_else(FMOne.mutation.burden.per.MB < 10, "Lo", "Hi"),
                tmb_bins = factor(tmb_bins, levels = c("Lo", "Hi")),
@@ -134,7 +134,8 @@ fig_3d <- col_data %>%
                                  IC.Level == "IC1" ~ "IC0/1",
                                  IC.Level == "IC0" ~ "IC0/1"),
                IC_bi = factor(IC_bi, levels = c("IC2+", "IC0/1"))) %>% 
-        unite(IC_bi_b8t, IC_bi, b8t, sep = ".")
+        unite(IC_bi_b8t, IC_bi, b8t, sep = ".", remove = F)
+
 fig_3d_his <- filter(fig_3d, b8t == "hi_hi")
 
 mt <- pairwise_survdiff(Surv(os, censOS) ~ IC_bi_b8t, data = fig_3d, p.adjust.method = "none") %>% 
@@ -171,11 +172,6 @@ ggsurv$table <- ggsurv$table +
               axis.line = element_blank())
 ggsurv
 dev.off()
-
-
-
-
-
 
 hi_hi <- col_data %>% 
         filter(b8t == "hi_hi") %>% 
