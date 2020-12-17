@@ -12,7 +12,7 @@ library(tidyverse)
 library(xml2)
 
 
-# Tidy Data ------------------------------------------------------------
+# Tidy Data ---------------------------------------------------------------
 
 parse_dat <- function(path) {
         dat <- read_xml(path) %>% 
@@ -61,6 +61,6 @@ both <- full_join(samples, names, by = "files") %>%
         select(-c(path.x, path.y, files, phenotype))
 
 
-# Write to SharePoint -----------------------------------------------------
+# Write -------------------------------------------------------------------
 
 write_tsv(both, "./data/imvigor210/clin.tsv")
