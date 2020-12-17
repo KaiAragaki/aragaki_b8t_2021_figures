@@ -20,11 +20,11 @@ sigs <- read_rds("./data/signatures/signatures.Rds")
 
 norm_counts <- dds %>%
         estimateSizeFactors() %>%
-        normTransform() %>%
+        vst() %>%
         assay()
 
 assay(dds, 2) <- norm_counts
-assayNames(dds)[[2]] <- "log2_norm_counts"
+assayNames(dds)[[2]] <- "vst"
 
 rownames(dds) <- make.unique(rowData(dds)$Symbol)
 
