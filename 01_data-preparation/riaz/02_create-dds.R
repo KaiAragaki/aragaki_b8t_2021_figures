@@ -38,11 +38,11 @@ dds <- DESeqDataSet(se, design = ~1)
         
 norm_counts <- dds %>%
         estimateSizeFactors() %>%
-        normTransform() %>%
+        vst() %>%
         assay()
 
 assay(dds, 2) <- norm_counts
-assayNames(dds)[[2]] <- "log2"
+assayNames(dds)[[2]] <- "vst"
 
 norm_counts_tibble <- norm_counts %>%
         as_tibble(rownames = "genes")
