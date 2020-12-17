@@ -22,19 +22,17 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
-               b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
+               b_bin = if_else(b_cell   > 0, "hi", "lo")) %>% 
         mutate(Best.Confirmed.Overall.Response = factor(Best.Confirmed.Overall.Response, 
                                                         levels = c("CR", "PR", "SD", "PD", "NE"))) %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
-               b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")))
 
 
 # Fig 1a: Signature Distribution ------------------------------------------
 
-ggplot(col_data, aes(b_cell, fill = 1)) +
+ggplot(col_data, aes(col_data$b_cell, fill = 1)) +
         geom_density(alpha = 0.8, color = NA) + 
         scale_fill_viridis_c(end = .95) + 
         xlab("B-cell Signature") +
@@ -45,7 +43,7 @@ ggplot(col_data, aes(b_cell, fill = 1)) +
               panel.grid = element_blank())
 ggsave("./figures/fig_1/fig_1a_i.png", width = 4, height = 3)
 
-ggplot(col_data, aes(cd8_t_eff, fill = 1)) +
+ggplot(col_data, aes(cd8_rose, fill = 1)) +
         geom_density(alpha = 0.8, color = NA) + 
         scale_fill_viridis_c(end = .95) + 
         xlab("CD8+ T-cell Signature") +
@@ -110,7 +108,7 @@ dev.off()
 
 fig_1c <- filter(col_data, Best.Confirmed.Overall.Response != "NE")
 
-ggplot(fig_1c, aes(x = b_cell, y = cd8_t_eff, color = Best.Confirmed.Overall.Response)) + 
+ggplot(fig_1c, aes(x = b_cell, y = cd8_rose, color = Best.Confirmed.Overall.Response)) + 
         scale_color_viridis_d(end = 0.90, direction = -1) + 
         geom_point(size = 4, alpha = 0.7) + 
         theme_minimal() + 
