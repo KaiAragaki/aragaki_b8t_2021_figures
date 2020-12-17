@@ -46,7 +46,7 @@ cd8_sade <- c("IL7R", "GPR183", "LMNA", "NR4A3", "TCF7", "MGAT4A", "CD55",
 
 cd8_fehr <- c("CD8A", "EOMES", "PRF1", "IFNG", "CD274")
 
-ifng <- c("IDO1", "CXLC10", "CXCL9", "HLA-DRA", "STAT1", "IFNG")
+ifng <- c("IDO1", "CXCL10", "CXCL9", "HLA-DRA", "STAT1", "IFNG")
 
 
 # Put into List -----------------------------------------------------------
