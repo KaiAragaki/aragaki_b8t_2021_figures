@@ -25,7 +25,7 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                tmb_bins = if_else(FMOne.mutation.burden.per.MB < 10, "Lo", "Hi"),
                tmb_bins = factor(tmb_bins, levels = c("Lo", "Hi")),
@@ -207,7 +207,7 @@ dev.off()
 
 fig_4f <- col_data %>% 
         filter(!is.na(tmb_bins)) %>% 
-        unite(s_tmb, gender, tmb_bins) %>% 
+        unite(s_tmb, gender, tmb_bins, remove = F) %>% 
         mutate(s_tmb = factor(s_tmb, levels=c("male_Hi", "male_Lo", "female_Hi", "female_Lo")))
 
 png(filename = "./figures/fig_4/fig_4f.png", width = 5.5, height = 5.5, units = "in", res = 288)
@@ -233,7 +233,6 @@ ggsurv$table <- ggsurv$table +
               axis.line = element_blank())
 ggsurv
 dev.off()
-
 
 
 # Fig 4g: PD-L1 IC vs Survival (Males) ------------------------------------
