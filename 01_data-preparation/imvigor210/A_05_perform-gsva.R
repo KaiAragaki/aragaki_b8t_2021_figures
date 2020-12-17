@@ -23,12 +23,15 @@ signatures <- read_rds("./data/imvigor210/sig-with-null.Rds")
 genes <- unlist(signatures) %>% 
         as_tibble()
 
-genes[which(!(genes$value %in% rownames(imvigor))),]
+if(nrow(genes[which(!(genes$value %in% rownames(imvigor))),]) == 0) {
+        print("All signature genes have match in dataset.")
+}
 
 
 # Run GSVA ----------------------------------------------------------------
 
-per_tumor_signature <- gsva(assay(imvigor, 2), signatures, mx.diff = T, kcdf = "Gaussian")
+per_tumor_signature <- gsva(assay(imvigor, 2), signatures, mx.diff = T, 
+                            kcdf = "Gaussian")
 
 
 # Export GSVA -------------------------------------------------------------
