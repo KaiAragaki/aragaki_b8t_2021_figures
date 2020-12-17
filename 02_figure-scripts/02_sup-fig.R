@@ -1,7 +1,8 @@
 
 # Description -------------------------------------------------------------
 
-# Supplemental Figure 2: Patients with TMB (high) tumors have higher proportion of responders
+# Supplemental Figure 2: Patients with TMB (high) tumors have higher 
+# proportion of responders
 
 
 # Prepare Workspace -------------------------------------------------------
@@ -21,7 +22,7 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 col_data <- colData(imvigor) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                Best.Confirmed.Overall.Response = factor(Best.Confirmed.Overall.Response, 
                                                         levels = c("CR", "PR", "SD", "PD", "NE"))) %>% 
@@ -62,8 +63,8 @@ table_fig_s2b <- fig_s2b %>%
         group_by(tmb_bins) %>% 
         mutate(prop = num/sum(num))
 
-ggplot(table_fig_2b, aes(x = b_bin, y = t_bin, color = as.factor(rep(1:2, each = 4)))) + 
-        geom_point(aes(size = num)) + 
+ggplot(table_fig_s2b, aes(x = b_bin, y = t_bin, color = as.factor(rep(1:2, each = 4)))) + 
+        geom_point(aes(size = prop)) + 
         scale_color_viridis_d(begin = 0.1, end = 0.5) + 
         facet_wrap(~tmb_bins, labeller = labeller(tmb_bins = labels)) + 
         theme_minimal() + 
