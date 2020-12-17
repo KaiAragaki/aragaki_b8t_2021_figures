@@ -8,7 +8,7 @@
 
 # Initialize Workspace ----------------------------------------------------
 
-library(tidyverse)          # Quality of Life
+library(tidyverse)
 library(DESeq2)             # DEGS, clustering
 library(readxl)             # For reading in normalized counts for HGCN ID
 library(biomaRt)            # Get HGCN, ensembl, etc IDs
@@ -75,11 +75,11 @@ dds <- dds[which(!is.na(rownames(dds))),]
 
 normCounts <- dds %>%
         estimateSizeFactors() %>%
-        normTransform() %>%
+        vst() %>%
         assay()
 
 assay(dds, 2) <- normCounts
-assayNames(dds)[[2]] <- "log2_norm_counts"
+assayNames(dds)[[2]] <- "vst"
 
 norm_counts_tibble <- normCounts %>%
         as_tibble(rownames = "Genes")
