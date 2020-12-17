@@ -7,6 +7,7 @@
 # Prepare Workspace -------------------------------------------------------
 
 library(tidyverse)
+library(DESeq2)
 
 
 # Define Functions --------------------------------------------------------
