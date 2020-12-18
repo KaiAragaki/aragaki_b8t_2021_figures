@@ -18,7 +18,7 @@ imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 clin <- as_tibble(colData(imvigor)) %>% 
         mutate(b.bin = if_else(b_cell > 0, "hi", "lo"),
-               t.bin = if_else(cd8_t_eff > 0, "hi", "lo")) %>% 
+               t.bin = if_else(cd8_rose > 0, "hi", "lo")) %>% 
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(gender = factor(gender, levels = c("male", "female")),
                IC.Level = factor(IC.Level, levels = c("IC0", "IC1", "IC2+")),
