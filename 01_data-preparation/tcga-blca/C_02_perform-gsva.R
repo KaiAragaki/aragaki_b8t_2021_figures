@@ -7,6 +7,7 @@
 # Prepare Workspace -------------------------------------------------------
 
 library(readr)
+library(dplyr)
 library(DESeq2)
 library(GSVA)
 

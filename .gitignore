@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+**/.DS_Store*
 data/signatures/*
 !data/signatures/.keep
 data/tcga-blca/*
