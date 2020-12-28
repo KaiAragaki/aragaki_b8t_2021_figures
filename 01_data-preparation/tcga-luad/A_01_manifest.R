@@ -11,9 +11,7 @@ library(readxl)             # For reading in supplementary data
 
 # Read in Data ------------------------------------------------------------
 
-# Obtained by scraping from the FFPE cases from broad FireHose
-# view-source:http://gdac.broadinstitute.org/runs/stddata__latest/samples_report/LUAD_FFPE_Cases.html
-ffpe_cases <- read_csv("./data/tcga-luad/ffpe-cases.csv")
+ffpe_cases <- read_tsv("./data/tcga-luad/ffpe-cases.tsv")
 
 
 # Define Functions --------------------------------------------------------
