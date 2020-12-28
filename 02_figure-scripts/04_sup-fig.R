@@ -43,7 +43,7 @@ ggplot(fig_s4, aes(b8t, fill = Best.Confirmed.Overall.Response)) +
         geom_bar(position = "fill") + 
         scale_fill_viridis_d(end = 0.95, direction = -1) + 
         facet_wrap(~gender,  labeller = labeller(gender = labels)) +
-        labs(fill = "", y = "Proportion", x = "B8T") +
+        labs(fill = "", y = "Proportion", x = "B-cell/CD8+ T-cell Signature") +
         theme_minimal() +
         scale_x_discrete(labels = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo")) +
         theme(text = element_text(size = 15),
