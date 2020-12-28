@@ -24,7 +24,7 @@ if(all(colnames(blca) == rownames(sig_scores))){ # Make sure everything is arran
 
 col_data <- colData(blca) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")),
@@ -67,7 +67,7 @@ fig_5b <- col_data %>%
         filter(patient.gender == "female")
 
 png(filename = "./figures/fig_5/fig_5b.png", width = 5.5, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = mysample) %>% 
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5b) %>% 
         ggsurvplot(pval = T,
                    palette = viridis(4, end = 0.95, direction = -1),
                    risk.table = T,
@@ -130,8 +130,8 @@ dev.off()
 # Read in Melanoma --------------------------------------------------------
 
 col_data <- read_rds("./data/tcga-skcm/C_03_merge-colData.rds") %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
-               t_bin_spec = if_else(cd8_t_eff_spec > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
+               t_bin_spec = if_else(cd8_rose_spec > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                b_bin_spec = if_else(b_cell > 0, "hi", "lo"),
                patient.gender = factor(patient.gender, c("male", "female"))) %>% 

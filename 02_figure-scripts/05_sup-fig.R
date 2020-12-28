@@ -27,7 +27,7 @@ if(all(colnames(blca) == rownames(sig_scores))){ # Make sure everything is arran
 
 col_data <- colData(blca) %>% 
         as_tibble() %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")),
@@ -48,7 +48,7 @@ ggplot(col_data, aes(b_cell, fill = 1)) +
 ggsave("./figures/fig_s5/fig_s5a_i.png", width = 4, height = 3)
 
 
-ggplot(col_data, aes(cd8_t_eff, fill = 1)) +
+ggplot(col_data, aes(cd8_rose, fill = 1)) +
         geom_density(alpha = 0.8, color = NA) + 
         scale_fill_viridis_c(end = .95) + 
         xlab("CD8+ T-cell Signature") +
@@ -142,7 +142,7 @@ ggplot(col_data, aes(b_cell, fill = patient.gender, color = patient.gender)) +
 
 ggsave("./figures/fig_s5/fig_s5d_i.png", width = 6, height = 3)
 
-ggplot(col_data, aes(cd8_t_eff, fill = patient.gender, color = patient.gender)) +
+ggplot(col_data, aes(cd8_rose, fill = patient.gender, color = patient.gender)) +
         geom_density(color = NA) +
         scale_fill_discrete(type = c("#1D557D", "#EB9BC7")) +
         xlab("CD8+ T-cell Signature") +
@@ -351,8 +351,8 @@ dev.off()
 # Read in Melanoma Data ---------------------------------------------------
 
 col_data <- read_rds("./data/tcga-skcm/C_03_merge-colData.rds") %>% 
-        mutate(t_bin = if_else(cd8_t_eff > 0, "hi", "lo"),
-               t_bin_spec = if_else(cd8_t_eff_spec > 0, "hi", "lo"),
+        mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
+               t_bin_spec = if_else(cd8_rose_spec > 0, "hi", "lo"),
                b_bin = if_else(b_cell > 0, "hi", "lo"),
                b_bin_spec = if_else(b_cell > 0, "hi", "lo"),
                patient.gender = factor(patient.gender, c("male", "female"))) %>% 
