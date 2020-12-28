@@ -1,5 +1,7 @@
+
+# Description -------------------------------------------------------------
+
 # This file tidies the TCGA LUAD clinical data
-# Last downloaded from Broad Firehose 2020-10-31 (Boo!)
 
 
 # Prepare Workspace -------------------------------------------------------
@@ -8,6 +10,9 @@ library(tidyverse)
 
 
 # Read in Data ------------------------------------------------------------
+
+clinical <- download.file("http://gdac.broadinstitute.org/runs/stddata__2016_01_28/data/LUAD/20160128/gdac.broadinstitute.org_LUAD.Merge_Clinical.Level_1.2016012800.0.0.tar.gz", destfile = "./data/tcga-luad/luad-clin.tar.gz")
+untar("./data/tcga-luad/luad-clin.tar.gz", exdir = "./data/tcga-luad/")
 
 clinical <- read_tsv("./data/tcga-luad/gdac.broadinstitute.org_LUAD.Merge_Clinical.Level_1.2016012800.0.0/LUAD.clin.merged.txt", col_names = F) %>% 
         t()
