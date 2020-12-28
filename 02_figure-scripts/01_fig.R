@@ -34,7 +34,7 @@ col_data <- colData(imvigor) %>%
 
 # Fig 1a: Signature Distribution ------------------------------------------
 
-ggplot(col_data, aes(col_data$b_cell, fill = 1)) +
+ggplot(col_data, aes(b_cell, fill = 1)) +
         geom_density(alpha = 0.8, color = NA) + 
         scale_fill_viridis_c(end = .95) + 
         xlab("B-cell Signature") +
@@ -42,7 +42,8 @@ ggplot(col_data, aes(col_data$b_cell, fill = 1)) +
         theme_minimal() +
         theme(text = element_text(size = 15),
               legend.position = "none",
-              panel.grid = element_blank())
+              panel.grid = element_blank()) +
+        coord_cartesian(xlim = c(-1, 1))
 ggsave("./figures/fig_1/fig_1a_i.png", width = 4, height = 3)
 
 ggplot(col_data, aes(cd8_rose, fill = 1)) +
@@ -53,7 +54,8 @@ ggplot(col_data, aes(cd8_rose, fill = 1)) +
         theme_minimal() +
         theme(text = element_text(size = 15),
               legend.position = "none",
-              panel.grid = element_blank())
+              panel.grid = element_blank()) +
+        coord_cartesian(xlim = c(-1, 1))
 ggsave("./figures/fig_1/fig_1a_ii.png", width = 4, height = 3)
 
 
@@ -112,7 +114,7 @@ fig_1c <- filter(col_data, Best.Confirmed.Overall.Response != "NE")
 
 ggplot(fig_1c, aes(x = b_cell, y = cd8_rose, color = Best.Confirmed.Overall.Response)) + 
         scale_color_viridis_d(end = 0.90, direction = -1) + 
-        geom_point(size = 4, alpha = 0.7) + 
+        geom_point(size = 2, alpha = 0.7) + 
         theme_minimal() + 
         labs(color = "Best Response", x = "B-cell Gene Signature", y = "CD8+ T-cell Gene Signature") +
         theme(text = element_text(size = 15),              
