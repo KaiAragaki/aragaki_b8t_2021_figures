@@ -9,7 +9,9 @@ library(tidyverse)
 
 # Read in Data ------------------------------------------------------------
 
-clinical <- read_tsv("./data/tcga-skcm/Broad Firehose/SKCM.clin.merged.txt", col_names = F) %>% 
+clinical <- download.file("http://gdac.broadinstitute.org/runs/stddata__2016_01_28/data/SKCM/20160128/gdac.broadinstitute.org_SKCM.Merge_Clinical.Level_1.2016012800.0.0.tar.gz", destfile = "./data/tcga-skcm/skcm-clin.tar.gz")
+untar("./data/tcga-skcm/skcm-clin.tar.gz", exdir = "./data/tcga-skcm/")
+clinical <- read_tsv("./data/tcga-skcm/gdac.broadinstitute.org_SKCM.Merge_Clinical.Level_1.2016012800.0.0/SKCM.clin.merged.txt", col_names = F) %>% 
         t()
 
 colnames(clinical) <- clinical[1,]
