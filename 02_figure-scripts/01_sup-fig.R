@@ -90,11 +90,11 @@ ggplot(fig_s1a, aes(x = Best.Confirmed.Overall.Response,
                           ymin = 1.15, ymax = 1.15, xmin = 1.43, xmax = 1.43) +
         annotation_custom(text_grob(label = starify(cr_sd$p.value), 
                                     hjust = 0, 
-                                    size = 30), 
+                                    size = 20), 
                           ymin = 1.5, ymax = 1.5, xmin = 1.83, xmax = 1.83) +
         annotation_custom(text_grob(label = starify(cr_sd$p.value), 
                                     hjust = 0, 
-                                    size = 30), 
+                                    size = 20), 
                           ymin = 1.8, ymax = 1.8, xmin = 2.33, xmax = 2.33) +
         compare_bar(1, 2, 1.1) +
         compare_bar(1, 3, 1.4) +
