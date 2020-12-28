@@ -17,12 +17,15 @@ library(biomaRt)
 
 # Read in Data ------------------------------------------------------------
 
-rna <- read_tsv("./data/van-allen/data_RNA_Seq_expression_median.txt") %>% 
+download.file("https://cbioportal-datahub.s3.amazonaws.com/skcm_dfci_2015.tar.gz", destfile = "./data/van-allen/exp.tar.gz")
+untar("./data/van-allen/exp.tar.gz", exdir = "./data/van-allen/")
+
+rna <- read_tsv("./data/van-allen/skcm_dfci_2015/data_RNA_Seq_expression_median.txt") %>% 
         column_to_rownames('Entrez_Gene_Id') %>% 
         as.matrix()
-        
-clin <- read_tsv("./data/van-allen/data_clinical_patient.txt", col_names = F, skip = 5)
-clin_colnames <- read_tsv("./data/van-allen/data_clinical_patient.txt", n_max = 1, col_names = F)
+
+clin <- read_tsv("./data/van-allen/skcm_dfci_2015/data_clinical_patient.txt", col_names = F, skip = 5)
+clin_colnames <- read_tsv("./data/van-allen/skcm_dfci_2015/data_clinical_patient.txt", n_max = 1, col_names = F)
 clin_colnames <- tolower(clin_colnames) %>% 
         str_replace_all("[:space:]", "_")
 colnames(clin) <- clin_colnames
@@ -32,17 +35,17 @@ colnames(clin) <- clin_colnames
 
 clin_tidy <- clin %>% 
         dplyr::rename(id = "#patient_identifier",
-               os_months = "overall_survival_(months)",
-               dead = "overall_survival_status",
-               response = "durable_clinical_benefit",
-               recurred = "disease_free_status") %>%
+                      os_months = "overall_survival_(months)",
+                      dead = "overall_survival_status",
+                      response = "durable_clinical_benefit",
+                      recurred = "disease_free_status") %>%
         dplyr::select(-dosage, -`response_duration_(weeks)`, -cohort) %>% 
         mutate(dead = case_when(dead == "0:LIVING" ~ 0,
                                 dead == "1:DECEASED" ~ 1,
                                 T ~ NA_real_),
                recurred = case_when(recurred == "0:DiseaseFree" ~ 0,
-                                recurred == "1:Recurred/Progressed" ~ 1,
-                                T ~ NA_real_)) %>% 
+                                    recurred == "1:Recurred/Progressed" ~ 1,
+                                    T ~ NA_real_)) %>% 
         filter(id %in% colnames(rna)) %>% 
         column_to_rownames("id")
 
