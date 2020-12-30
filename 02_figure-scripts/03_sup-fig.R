@@ -47,7 +47,7 @@ ggplot(fig_s3a, aes(x = IC.Level,
               text = element_text(size = 25),
               panel.grid = element_blank()) + 
         labs(fill = "", x = "B-cell/CD8+ T Cell Signature", y = "Proportion")
-ggsave("./figures/fig_s3/fig_s3a.png", width = 5, height = 7)
+ggsave("./figures/fig_s3/fig_s3a.png", width = 6, height = 7)
 
 
 
