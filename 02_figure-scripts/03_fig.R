@@ -234,7 +234,8 @@ dev.off()
 
 best <- col_data %>% 
         filter(tmb_bins == "Hi"| IC.Level == "IC2+"| b8t == "hi_hi") %>%
-        select(tmb_bins, IC.Level, b8t)
+        filter(!is.na(tmb_bins)) %>% 
+        select(tmb_bins, IC.Level, b8t) 
 
 hihi <- best %>% 
         filter(tmb_bins != "Hi",
