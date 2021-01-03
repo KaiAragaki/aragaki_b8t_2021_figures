@@ -16,7 +16,7 @@ library(dplyr)
 download.file("http://gdac.broadinstitute.org/runs/stddata__2016_01_28/data/BLCA/20160128/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz", 
               destfile = "H:/Rusty_B8T/data/TCGA_BLCA/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz")
 
-untar("H:/Rusty_B8T/data/TCGA_BLCA/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz", exdir = "./data/tcga-blca/")
+untar("H:/Rusty_B8T/data/TCGA_BLCA/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0.tar.gz", exdir = "H:/Rusty_B8T/data/TCGA_BLCA/")
 
 clinical <- read_tsv("H:/Rusty_B8T/data/TCGA_BLCA/gdac.broadinstitute.org_BLCA.Merge_Clinical.Level_1.2016012800.0.0/BLCA.clin.merged.txt", col_names = F) %>% 
   t()

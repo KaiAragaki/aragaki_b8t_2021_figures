@@ -7,6 +7,8 @@
 # Prepare Workspace -------------------------------------------------------
 
 library(tidyverse)
+library(DESeq2)
+
 
 
 # Define Functions --------------------------------------------------------
@@ -43,7 +45,7 @@ signatures <- read_rds("H:/Rusty_B8T/data/TCGA_BLCA/signatures/signatures.Rds")
 # Generate Null Signatures ------------------------------------------------
 names(signatures)
 signatures_null <- map2(names(signatures), signatures, generate_null_sig)
-?map2
+
 names(signatures_null) <- paste0(names(signatures), "_null")
 signatures <- c(signatures, signatures_null)
 
