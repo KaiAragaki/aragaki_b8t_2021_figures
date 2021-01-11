@@ -25,10 +25,12 @@ if(all(colnames(blca) == rownames(sig_scores))){ # Make sure everything is arran
 col_data <- colData(blca) %>% 
         as_tibble() %>% 
         mutate(t_bin = if_else(cd8_rose > 0, "hi", "lo"),
-               b_bin = if_else(b_cell > 0, "hi", "lo")) %>% 
+               b_bin = if_else(b_cell > 0, "hi", "lo"), 
+               b8t_bin = if_else(b_cell>0 & cd8_rose>0,"hi_hi","all_other")) %>% 
         unite(b8t, b_bin, t_bin, remove = F) %>% 
         mutate(b8t = factor(b8t, levels = c("hi_hi", "lo_hi", "lo_lo", "hi_lo")),
-               patient.gender = factor(patient.gender, levels = c("male", "female")))
+               patient.gender = factor(patient.gender, levels = c("male", "female")),
+               b8t_bin = factor(b8t_bin, levels=c("hi_hi","all_other")))
 
 
 # Fig 5a: B8T vs TCGA BLCA Survival ---------------------------------------
@@ -43,6 +45,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = col_data) %>%
                    legend.title = "B8T", 
                    legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
                    xlab = "Overall Survival (Months)", 
+                   subtitle="A    ALL MIBC Tumors",
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
@@ -57,6 +60,37 @@ ggsurv$table <- ggsurv$table +
         theme(axis.text.x = element_blank(),
               axis.ticks = element_blank(),
               axis.line = element_blank())
+ggsurv
+dev.off()
+
+#fig 5a2 B8t: hi_hi vs. all_other for TCGA BLCA survival overall
+
+png(filename = "./figures/fig_5/fig_5a2.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = col_data) %>% 
+        ggsurvplot(pval = T, 
+                   palette = viridis(4, end = 0.95, direction = -1),
+                   risk.table = T,
+                   risk.table.height = 0.3,
+                   risk.table.title = "No. at risk",
+                   legend.title = "B8T", 
+                   legend.labs = c("Hi/Hi", "All other"),
+                   xlab = "Overall Survival (Months)", 
+                   subtitle="A2    ALL MIBC Tumors",
+                   legend ="right",
+                   xscale = 30,
+                   break.x.by = 300,
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 12,
+                   xlim = c(0, 1800),
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+
 ggsurv
 dev.off()
 
@@ -76,7 +110,38 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5b) %>%
                    legend.title = "B8T\n(Females)", 
                    legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
                    xlab = "Overall Survival (Months)", 
+                   subtitle="B     Female MIBC",
                    legend = "right",
+                   xscale = 30,
+                   break.x.by = 300,
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 12,
+                   xlim = c(0, 1800),
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
+
+# Fig 5b2: B8T: hi_hi vs. all other for TCGA BLCA Survival in Females -----------------------------
+
+png(filename = "./figures/fig_5/fig_5b2.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = fig_5b) %>% 
+        ggsurvplot(pval = T,
+                   palette = viridis(4, end = 0.95, direction = -1),
+                   risk.table = T,
+                   risk.table.height = 0.3,
+                   risk.table.title = "No. at risk",
+                   legend.title = "B8T\n(Females)", 
+                   legend.labs = c("Hi/Hi", "All other"),
+                   xlab = "Overall Survival (Months)", 
+                   legend = "right",
+                   subtitle="B2     Female MIBC",
                    xscale = 30,
                    break.x.by = 300,
                    font.xtickslab = 15, 
@@ -108,6 +173,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5c) %>%
                    legend.title = "B8T\n(Males)", 
                    legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
                    xlab = "Overall Survival (Months)", 
+                   subtitle="C     Male MIBC",
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
@@ -125,6 +191,36 @@ ggsurv$table <- ggsurv$table +
 ggsurv
 dev.off()
 
+# Fig 5c2: B8T: hi_hi vs. all other for TCGA BLCA Survival in Males -------------------------------
+
+
+png(filename = "./figures/fig_5/fig_5c2.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = fig_5c) %>% 
+        ggsurvplot(pval = T, 
+                   palette = viridis(4, end = 0.95, direction = -1),
+                   risk.table = T,
+                   risk.table.height = 0.3,
+                   risk.table.title = "No. at risk",
+                   legend.title = "B8T\n(Males)", 
+                   legend.labs = c("Hi/Hi", "All other"),
+                   xlab = "Overall Survival (Months)", 
+                   legend = "right",
+                   subtitle="C2     Male MIBC",
+                   xscale = 30,
+                   break.x.by = 300,
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 12,
+                   xlim = c(0, 1800),
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
 
 
 # Read in Melanoma --------------------------------------------------------
