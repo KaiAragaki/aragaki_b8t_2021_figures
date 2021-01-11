@@ -3,8 +3,6 @@
 
 # Creates a manifest of files to download
 
-# supData: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5687509/bin/NIHMS911030-supplement-8.xlsx
-
 
 # Prepare Workspace -------------------------------------------------------
 
@@ -32,9 +30,12 @@ geManifest <- files() %>%
         # Creates a 'path' feature that DESeq uses for its sampleTable argument
         mutate(path = paste(.$id, .$filename, sep = "/"))
 
+
+download.file("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5687509/bin/NIHMS911030-supplement-8.xlsx", 
+              destfile = "./data/tcga-blca/sup.xlsx", method = "curl")
+
 supData <- 
-        read_xlsx("./data/tcga-blca/NIHMS911030-supplement-8.xlsx", 
-                  sheet = 2) %>%
+        read_xlsx("./data/tcga-blca/sup.xlsx", sheet = 2) %>%
         dplyr::filter(`RNA Seq` == "Yes") %>%
         dplyr::select(`Case ID`, `mRNA cluster`)
 

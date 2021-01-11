@@ -20,8 +20,12 @@ signatures <- read_rds("./data/tcga-blca/C_02_signatures-with-null.Rds")
 
 # Ensure Genes are in Dataset ----------------------------------------
 
+signatures$b_cell[5] <- "FAM30A"
+
 genes <- unlist(signatures) %>% 
         as_tibble()
+
+
 
 if(nrow(genes[which(!(genes$value %in% rownames(blca))),]) == 0) {
         print("All signature genes have match in dataset.")
