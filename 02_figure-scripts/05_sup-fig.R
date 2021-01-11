@@ -40,6 +40,7 @@ ggplot(col_data, aes(b_cell, fill = 1)) +
         scale_fill_viridis_c(end = .95) + 
         xlab("B-cell Signature") +
         ylab("Density") + 
+        labs(subtitle="A")+
         theme_minimal() +
         theme(text = element_text(size = 15),
               legend.position = "none",
@@ -73,6 +74,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b_bin, data = col_data) %>%
                    legend.labs = c("High", "Low"), 
                    legend.title = "B-cell Signature", 
                    xlab = "Overall Survival (Months)",
+                   subtitle="B",
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
@@ -103,6 +105,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ t_bin, data = col_data) %>%
                    legend.labs = c("High", "Low"), 
                    legend.title = "T-cell Signature", 
                    xlab = "Overall Survival (Months)",
+                   subtitle="C",
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
@@ -130,7 +133,7 @@ ggplot(col_data, aes(b_cell, fill = patient.gender, color = patient.gender)) +
         scale_fill_discrete(type = c("#1D557D", "#EB9BC7")) +
         xlab("B-cell Signature") +
         ylab("Density") + 
-        labs(fill = "Sex") +
+        labs(fill = "Sex",subtitle="D") +
         facet_wrap(~patient.gender, labeller = labeller(patient.gender = labels)) +
         theme_minimal() +
         theme(text = element_text(size = 15),
@@ -197,6 +200,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender + is_hi_lo, data
                    xlim = c(0, 1800),
                    pval.coord = c(0, 0.05))
 
+
 col_data_2_female <- filter(col_data_2, patient.gender == "female")
 
 ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender + is_hi_lo, data = col_data_2_female) %>% 
@@ -232,6 +236,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender, data = fig_s5e)
                    legend.title = "Sex\n(B8T Hi/Hi)", 
                    legend = "right",
                    xlab = "Overall Survival (Months)", 
+                   subtitle = "E",
                    xscale = 30,
                    break.x.by = 300,
                    font.xtickslab = 15, 
@@ -265,6 +270,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender, data = fig_s5f)
                    legend.title = "Sex\n(B8T Hi/Lo)", 
                    legend = "right",
                    xlab = "Overall Survival (Months)", 
+                   subtitle = "F",
                    xscale = 30,
                    break.x.by = 300,
                    font.xtickslab = 15, 
@@ -298,6 +304,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender, data = fig_s5g)
                    legend.title = "Sex\n(B8T Lo/Hi)", 
                    legend = "right",
                    xlab = "Overall Survival (Months)", 
+                   subtitle = "G",
                    xscale = 30,
                    break.x.by = 300,
                    font.xtickslab = 15, 
@@ -331,6 +338,7 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender, data = fig_s5h)
                    legend.title = "Sex\n(B8T Lo/Lo)", 
                    legend = "right",
                    xlab = "Overall Survival (Months)", 
+                   subtitle = "H",
                    xscale = 30,
                    break.x.by = 300,
                    font.xtickslab = 15, 

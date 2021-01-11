@@ -46,7 +46,6 @@ signatures_null <- map2(names(signatures), signatures, generate_null_sig)
 names(signatures_null) <- paste0(names(signatures), "_null")
 signatures <- c(signatures, signatures_null)
 
-
 # Export ------------------------------------------------------------------
 
 write_rds(signatures, "./data/tcga-blca/C_02_signatures-with-null.Rds")
