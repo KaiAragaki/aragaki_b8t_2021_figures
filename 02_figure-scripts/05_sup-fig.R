@@ -313,3 +313,36 @@ ggsurv$table <- ggsurv$table +
               axis.line = element_blank())
 ggsurv
 dev.off()
+
+
+# Fig S5h Compare Sex Outcomes Between B8T Lo/Lo --------------------------
+
+fig_s5h <- col_data %>% 
+        filter(b8t == "lo_lo")
+
+png(filename = "./figures/fig_s5/fig_s5h.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ patient.gender, data = fig_s5h) %>% 
+        ggsurvplot(pval = round(mt$adj[mt$b8t_1 == "lo_lo"], 2), 
+                   risk.table = T,
+                   risk.table.height = 0.22,
+                   risk.table.title = "No. at risk",
+                   palette = c("#1D557D", "#EB9BC7"),
+                   legend.labs = c("Male", "Female"), 
+                   legend.title = "Sex\n(B8T Lo/Lo)", 
+                   legend = "right",
+                   xlab = "Overall Survival (Months)", 
+                   xscale = 30,
+                   break.x.by = 300,
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 10,
+                   xlim = c(0, 1800),
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
