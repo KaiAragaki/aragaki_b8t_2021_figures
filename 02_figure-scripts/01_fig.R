@@ -34,29 +34,27 @@ col_data <- colData(imvigor) %>%
 
 # Fig 1a: Signature Distribution ------------------------------------------
 
-ggplot(col_data, aes(b_cell, fill = 1)) +
-        geom_density(alpha = 0.8, color = NA) + 
-        scale_fill_viridis_c(end = .95) + 
-        xlab("B-cell Signature") +
-        ylab("Density") + 
-        theme_minimal() +
-        theme(text = element_text(size = 15),
-              legend.position = "none",
-              panel.grid = element_blank()) +
-        coord_cartesian(xlim = c(-1, 1))
-ggsave("./figures/fig_1/fig_1a_i.png", width = 4, height = 3)
+col_data_long <- 
+        pivot_longer(col_data, cols = c(b_cell, cd8_rose)) %>% 
+        mutate(name = factor(name, levels = c("b_cell", "cd8_rose"), 
+                             labels = c("B-cell Signature", "CD8+ T-cell Signature")))
 
-ggplot(col_data, aes(cd8_rose, fill = 1)) +
+ggplot(col_data_long, aes(value, fill = 1)) +
+        facet_grid(~name) + 
         geom_density(alpha = 0.8, color = NA) + 
         scale_fill_viridis_c(end = .95) + 
-        xlab("CD8+ T-cell Signature") +
-        ylab("Density") + 
+        labs(x = "B-cell Signature", y = "Density", title = "A.") +
         theme_minimal() +
         theme(text = element_text(size = 15),
               legend.position = "none",
-              panel.grid = element_blank()) +
-        coord_cartesian(xlim = c(-1, 1))
-ggsave("./figures/fig_1/fig_1a_ii.png", width = 4, height = 3)
+              panel.grid = element_blank(), 
+              plot.title.position = "plot",
+              plot.title = element_text(face = "bold"),
+              axis.title.x = element_blank(),
+              panel.spacing = unit(4, "lines"),
+              plot.margin = unit(c(1, 10, 1, 1), "mm")) +
+        coord_cartesian(xlim = c(-1, 1), ylim = c(0, NA), expand = F)
+ggsave("./figures/fig_1/fig_1a.png", width = 7, height = 3)
 
 
 # Fig 1b: Survival between Signature Modes --------------------------------
@@ -67,14 +65,19 @@ ggsurv <- survfit(Surv(os, censOS) ~ b_bin, data = col_data) %>%
                    risk.table = T,
                    risk.table.height = 0.22,
                    risk.table.title = "No. at risk",
-                   palette = viridis(2, end = 0.95, direction = -1), 
+                   palette = viridis(2, end = 0.95, direction = -1),
+                   title = "B.",
                    legend.labs = c("High", "Low"), 
                    legend.title = "B-cell Signature", 
                    xlab = "Overall Survival (Months)", 
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 12,
+                   font.xtickslab = 20, 
+                   font.ytickslab = 20, 
+                   font.legend = 20,
+                   fontsize = 7,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
@@ -91,13 +94,18 @@ ggsurv <- survfit(Surv(os, censOS) ~ t_bin, data = col_data) %>%
                    risk.table.height = 0.22,
                    risk.table.title = "No. at risk",
                    palette = viridis(2, end = 0.95, direction = -1), 
+                   title = " ",
                    legend.labs = c("High", "Low"), 
-                   legend.title = "CD8+ T-cell Signature", 
+                   legend.title = "CD8+ T-cell Sig.", 
                    xlab = "Overall Survival (Months)", 
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 12,
+                   font.xtickslab = 20, 
+                   font.ytickslab = 20, 
+                   font.legend = 20,
+                   fontsize = 7,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
@@ -116,10 +124,16 @@ ggplot(fig_1c, aes(x = b_cell, y = cd8_rose, color = Best.Confirmed.Overall.Resp
         scale_color_viridis_d(end = 0.90, direction = -1) + 
         geom_point(size = 2, alpha = 0.7) + 
         theme_minimal() + 
-        labs(color = "Best Response", x = "B-cell Gene Signature", y = "CD8+ T-cell Gene Signature") +
-        theme(text = element_text(size = 15),              
-              panel.grid = element_blank())
-ggsave("./figures/fig_1/fig_1c.png", width = 6, height = 4)
+        labs(color = "Best Response", x = "B-cell Signature", 
+             y = "CD8+ T-cell Signature", title = "C.") +
+        coord_cartesian(xlim = c(-1, 1), ylim = c(-1, 1), expand = F) + 
+        theme(text = element_text(size = 12),              
+              panel.grid = element_blank(),
+              plot.title.position = "plot",
+              plot.title = element_text(face = "bold"),
+              legend.position = "top",
+              plot.margin = unit(c(1, 15, 1, 3), "mm"))
+ggsave("./figures/fig_1/fig_1c.png", width = 4.3, height = 4)
 
 
 # Fig 1d: Survival vs B8T --------------------------------------------------
@@ -135,74 +149,24 @@ ggsurv <-
                    legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"), 
                    legend.title = "B8T", 
                    xlab = "Overall Survival (Months)", 
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 12, 
+                   title = "D.",
+                   font.xtickslab = 17, 
+                   font.ytickslab = 17, 
+                   font.legend = 17,
+                   fontsize = 6,
                    legend = "top",
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              plot.margin = unit(c(1, 10, 1, 1), "mm"))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
-
-ggsurv
-dev.off()
-
-
-# Fig 1e: Survival vs B8T (No Platinum) ------------------------------------
-
-no_plat <- filter(col_data, Received.platinum == "N")
-
-png(filename = "./figures/fig_1/fig_1e.png", width = 5.5, height = 6, units = "in", res = 288)
-ggsurv <- survfit(Surv(os, censOS) ~ b8t, data = no_plat) %>% 
-        ggsurvplot(pval = T, 
-                   risk.table = T,
-                   risk.table.height = 0.3,
-                   risk.table.title = "No. at risk",
-                   palette = viridis(4, end = 0.95, direction = -1),
-                   legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
-                   legend.title = "B8T\n(No Platinum)", 
-                   xlab = "Overall Survival (Months)", 
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 12,
-                   pval.coord = c(0, 0.05))
-ggsurv$table <- ggsurv$table +
-        ylab(NULL) + 
-        xlab(NULL) +
-        theme(axis.text.x = element_blank(),
-              axis.ticks = element_blank(),
-              axis.line = element_blank())
-
-ggsurv
-dev.off()
-
-# Fig 1f: Survival vs B8T (Platinum) --------------------------------------
-
-plat <- filter(col_data, Received.platinum == "Y")
-
-png(filename = "./figures/fig_1/fig_1f.png", width = 5.5, height = 6, units = "in", res = 288)
-ggsurv <- survfit(Surv(os, censOS) ~ b8t, data = plat) %>% 
-        ggsurvplot(pval = T, 
-                   risk.table = T,
-                   risk.table.height = 0.3,
-                   risk.table.title = "No. at risk",
-                   palette = viridis(4, end = 0.95, direction = -1),
-                   legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
-                   legend.title = "B8T\n(Platinum-Treated)", 
-                   xlab = "Overall Survival (Months)", 
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 12,
-                   pval.coord = c(0, 0.05))
-ggsurv$table <- ggsurv$table +
-        ylab(NULL) + 
-        xlab(NULL) +
-        theme(axis.text.x = element_blank(),
-              axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.margin = unit(c(1, 10, 1, 1), "mm"))
 
 ggsurv
 dev.off()
