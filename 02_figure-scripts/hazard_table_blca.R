@@ -18,12 +18,14 @@ blca <- read_rds("./data/tcga-blca/C_04_merge-gsva.rds")
 
 clin <- as_tibble(colData(blca)) %>% 
         mutate(b.bin = if_else(b_cell > 0, "hi", "lo"),
-               t.bin = if_else(cd8_rose > 0, "hi", "lo")) %>% 
+               b.bin = factor(b.bin, levels = c("lo", "hi")),
+               t.bin = if_else(cd8_rose > 0, "hi", "lo"),
+               t.bin = factor(t.bin, levels = c("lo", "hi")),) %>% 
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(sex = patient.gender,
                race = patient.race_list.race) %>% 
         select(sex, race, contains("metastat"), contains("stage"), 
-               contains("age"), contains("grade"), contains("lund"), 
+               contains("age"), contains("smok"), contains("grade"), contains("lund"), 
                contains("mRNA"), "b8t", new_death, death_event, contains("sample.days_to_collection")) %>% 
         select(!contains("file")) %>% 
         mutate(met_site = case_when(patient.metastatic_site_list.metastatic_site == "other" ~ patient.other_metastatic_site,
@@ -31,6 +33,7 @@ clin <- as_tibble(colData(blca)) %>%
         unite(met_site, met_site, 
               patient.metastatic_site_list.metastatic_site.2, 
               patient.metastatic_site_list.metastatic_site.3, na.rm = T) %>% 
+        mutate(met_site = if_else(met_site == "", NA_character_, met_site)) %>% 
         select(-contains("prostate"), -contains("metastatic_site"), 
                -contains("metastatic_procedure"), -contains("gleason"), 
                -contains("dosage"), -contains("image"), -contains("omf")) %>% 
@@ -42,403 +45,221 @@ clin <- as_tibble(colData(blca)) %>%
                       age_smoking_start = patient.age_began_smoking_in_years,
                       grade = patient.neoplasm_histologic_grade,
                       age = patient.age_at_initial_pathologic_diagnosis,
-                      days_to_collection = patient.samples.sample.days_to_collection) %>% 
-        select(-patient.stage_event.system_version) %>% 
-        relocate(stage, .after = stage_pt) %>% 
+                      days_to_collection = patient.samples.sample.days_to_collection,
+                      pack_years = patient.number_pack_years_smoked) %>% 
+        select(-patient.stage_event.system_version, -stage) %>%  
         relocate(age, .after = age_smoking_start) %>% 
         mutate(stage_ct = case_when(str_detect(stage_ct, "t1") ~ "t1",
                                     str_detect(stage_ct, "t2") ~ "t2",
                                     str_detect(stage_ct, "t3") ~ "t3",
                                     str_detect(stage_ct, "t4") ~ "t4",
                                     T ~ stage_ct),
+               stage_ct_bin = case_when(stage_ct == "t1" ~ "<t2",
+                                        stage_ct %in% c("t2", "t3", "t4") ~ ">=t2",
+                                        T ~ stage_ct),
                stage_pt = case_when(str_detect(stage_pt, "t1") ~ "t1",
                                     str_detect(stage_pt, "t2") ~ "t2",
                                     str_detect(stage_pt, "t3") ~ "t3",
                                     str_detect(stage_pt, "t4") ~ "t4",
-                                    T ~ stage_pt)) %>% 
+                                    T ~ stage_pt),
+               met_site_bin = case_when(met_site == "lymph node only" ~ "Lymph Node",
+                                         met_site == "none" ~ "None",
+                                         is.na(met_site) ~ NA_character_,
+                                         T ~ "Other"),
+               node_bin = case_when(stage_n %in% c("n1", "n2", "n3") ~ ">n0",
+                                    T ~ stage_n)) %>% 
+        select(-stage_ct, -stage_pt, -met_site, -stage_n) %>% 
         mutate(across(where(is.character), as.factor))
 
+# Didn't do stage_pt_bin because it was causing convergence issues due to low <t2.
 
 # Univariate ---------------------------------------------------------
 
-
-# Anovas -------------------------------------------------------------
-
-
+# Logrank Test -------------------------------------------------------------
 
 # Cutoff for consideration in multivariate analysis ("denoted 'sig'"): 
 # p < 0.15
 
-a <- coxph(Surv(new_death, death_event) ~ sex, data = clin) %>% 
-        anova() %>%  
-        tidy()
-b <- coxph(Surv(new_death, death_event) ~ race, data = clin) %>% 
-        anova() %>% 
-        tidy()
-c <- coxph(Surv(new_death, death_event) ~ age_smoking_start, data = clin) %>% 
-        anova() %>% 
-        tidy()
-d <- coxph(Surv(new_death, death_event) ~ mRNA.cluster, data = clin) %>% 
-        anova() %>% 
-        tidy()
-# e <- coxph(Surv(new_death, death_event) ~ stage, data = clin) %>% 
-#         anova() %>% 
-#         tidy()
+lr <- function(var) {
+        name <- var
+        var <- clin[[var]]
+        coxph(Surv(new_death, death_event) ~ var, data = clin) %>% 
+                glance() %>% 
+                mutate(name = name) %>% 
+                relocate(name)
+}
 
-clin_2 <- filter(clin, stage != "stage i")
+vars <- colnames(clin)
 
-e.2 <- coxph(Surv(new_death, death_event) ~ stage, data = clin_2) %>% 
-        anova() %>% 
-        tidy()
+vars <- vars[-which(vars %in% c("new_death", "death_event"))]
 
-f <- coxph(Surv(new_death, death_event) ~ stage_ct, data = clin) %>% 
-        anova() %>% 
-        tidy()
+df <- data.frame()
+for (i in seq_along(vars)) {
+        df <- rbind(df, as.vector(lr(vars[i])))
+        
+        
+}
 
-g <- coxph(Surv(new_death, death_event) ~ stage_m, data = clin) %>% 
-        anova() %>% 
-        tidy()
-h <- coxph(Surv(new_death, death_event) ~ stage_n, data = clin) %>% 
-        anova() %>% 
-        tidy()
-# i <- coxph(Surv(new_death, death_event) ~ stage_pt, data = clin) %>% 
-#         anova() %>% 
-#         tidy()
+df <- df %>% 
+        select(name, p.value.sc) %>% 
+        mutate(stars = case_when(p.value.sc < 0.001 ~ "(***)",
+                                 p.value.sc < 0.01 ~ "(**)",
+                                 p.value.sc < 0.05 ~ "(*)",
+                                 p.value.sc < 0.15 ~ "(#)",
+                                 T ~ "(NS)"))
 
-pt_table <- table(clin$stage_pt)
-few <- names(pt_table[which(pt_table > 10)])
+df_sig <- df %>% 
+        filter(p.value.sc < 0.15) %>% 
+        unite(term_2, name, stars, remove = F, sep = " ") %>% 
+        select(-stars)
 
-clin_3 <- filter(clin, stage_pt %in% few)
 
-i.2 <- coxph(Surv(new_death, death_event) ~ stage_pt, data = clin_3) %>% 
-        anova() %>% 
-        tidy()
+# Cox with Levels ---------------------------------------------------------
 
-j <- coxph(Surv(new_death, death_event) ~ age, data = clin) %>% 
-        anova() %>% 
-        tidy()
-k <- coxph(Surv(new_death, death_event) ~ grade, data = clin) %>% 
-        anova() %>% 
-        tidy()
-l <- coxph(Surv(new_death, death_event) ~ b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-m <- coxph(Surv(new_death, death_event) ~ days_to_collection, data = clin) %>% 
-        anova() %>% 
-        tidy()
+# Now look at coxph ratios for each level that reached ss
 
-signif_uni <- 
-        bind_rows(a, b, c, d, e.2, f, g, h, i.2, j, k, l, ) %>% 
-        filter(term != "NULL") %>% 
+wl <- function(var) {
+        feature <- var
+        var <- clin[[var]]
+        coxph(Surv(new_death, death_event) ~ var, data = clin) %>% 
+                tidy(exponentiate = T) %>%  
+                mutate(feature = feature) %>% 
+                relocate(feature) %>% 
+                retidy()
+}
+
+colnames_search <- paste(colnames(clin), collapse = "|")
+
+make_reflevel_table <- function(df) {
+        feature <- unique({{df$feature}})
+        if(is.factor(clin[[feature]])) {
+                ref_df <- data.frame(feature = feature, 
+                                     term = levels(clin[[feature]])[1], 
+                                     estimate = 1, std.error = NA, p.value = NA)
+                df <- bind_rows(ref_df, df)
+        }
+        df
+}
+
+retidy <- function(df) {
+        df %>% 
+                mutate(term = str_remove(term, "^var")) %>% 
+                select(-statistic) %>% 
+                make_reflevel_table()
+}
+
+vars <- df_sig$name
+df <- data.frame()
+for (i in seq_along(vars)) {
+        df <- rbind(df, as.vector(wl(vars[i])))
+}
+
+
+# Make Table ---------------------------------------------------------
+
+df %>% 
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 is.na(p.value) ~ NA_character_,
+                                 T ~ "NS")) %>% 
+        left_join(df_sig, by = c("feature" = "name")) %>%
+        dplyr::rename("HR" = estimate,
+                      "SE" = std.error,
+                      "p-value" = p.value,
+                      " " = stars) %>%
+        select(-feature, -p.value.sc) %>% 
+        relocate("p-value", .before =  " ") %>% 
+        gt(groupname_col = "term_2",
+           rowname_col = "term") %>% 
+        fmt_number(columns = 2:3, drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = 4, decimals = 2) %>% 
+        cols_align("center") %>% 
+        tab_style(style = cell_text(align = "right"), 
+                  locations = cells_stub()) %>% 
+        fmt_missing(columns = 1:6, missing_text = "") %>%
+        tab_header(title = "Univariate Hazard Ratios") %>% 
+        tab_footnote("Features not trending significant (P < 0.15) by logrank test: Sex, Race, Age Started Smoking, B8T, Clinical Stage",
+                     locations = cells_column_labels("p-value")) %>% 
+        tab_footnote("p-value by logrank test (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
+                     location = cells_row_groups(starts_with("stage_m"))) %>% 
+        cols_width(vars(`p-value`) ~ px(130),
+                   vars(HR, SE, " ") ~ px(60)) %>%
+        tab_options(table.width = px(500)) %>% 
+        gtsave("./figures/tables/risk_table_uni_blca.png") 
+
+
+
+
+# Multivariate -------------------------------------------------------
+
+complete_clin <- clin %>% 
+        select(b8t, sex, stage_m, age, grade, mRNA.cluster, days_to_collection, met_site_bin, node_bin, new_death, death_event)
+
+complete_clin <- complete_clin[complete.cases(complete_clin),]
+
+retidy <- function(df) {
+        df %>% 
+                mutate(feature = str_extract(term, colnames_search),
+                       term = str_remove(term, colnames_search)) %>% 
+                group_by(feature) %>% 
+                select(-statistic)
+}
+
+make_reflevel_table <- function(df) {
+        feature <- unique({{df$feature}})
+        if(is.factor(complete_clin[[feature]])) {
+                ref_df <- data.frame(feature = feature, 
+                                     term = levels(complete_clin[[feature]])[1], 
+                                     estimate = 1, std.error = NA, p.value = NA)
+                df <- bind_rows(ref_df, df)
+        }
+        df
+}
+
+mv <- coxph(Surv(new_death, death_event) ~ b8t*sex + stage_m + age + grade + mRNA.cluster + days_to_collection + met_site_bin + node_bin, data = complete_clin) %>% 
+        tidy(exponentiate = T) %>%
+        retidy() %>% 
+        group_by(feature) %>% 
+        group_split() %>% 
+        lapply(make_reflevel_table) %>% 
+        bind_rows() %>% 
         mutate(stars = case_when(p.value < 0.001 ~ "(***)",
                                  p.value < 0.01 ~ "(**)",
                                  p.value < 0.05 ~ "(*)",
                                  p.value < 0.15 ~ "(#)",
                                  T ~ "(NS)")) %>% 
-        filter(p.value < 0.15) %>% 
-        unite(term_2, term, stars, sep = " ", remove = F)
-        
+        filter(!(feature %in% c("grade", "met_site_bin", "node_bin", "stage_m")))
 
-# Cox with Levels ----------------------------------------------------
-
-# Now look at coxph ratios for each level that reached ss
-
-colnames_search <- paste(colnames(clin), collapse = "|")
-
-make_reflevel_table <- function(df) {
-        name <- unique({{df$feature}})
-        if(is.factor(clin[[name]])) {
-                ref_df <- data.frame(feature = name, term = levels(clin[[name]])[1], estimate = 1, std.error = NA, p.value = NA)
-                df <- bind_rows(ref_df, df)
-        }
-        df
-}
-
-retidy <- function(df) {
-        df %>% 
-                mutate(feature  = str_extract(term, colnames_search),
-                       term = str_remove(term, colnames_search)) %>% 
-                relocate(feature, .before = everything()) %>% 
-                select(-statistic) %>% 
-                make_reflevel_table()
-}
-
-a.1 <- coxph(Surv(new_death, death_event) ~ mRNA.cluster, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-b.1 <- coxph(Surv(new_death, death_event)~ stage, data = clin_2) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-c.1 <- coxph(Surv(new_death, death_event)~ stage_ct, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-d.1 <- coxph(Surv(new_death, death_event)~ stage_m, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-e.1 <- coxph(Surv(new_death, death_event)~ stage_n, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-f.1 <- coxph(Surv(new_death, death_event)~ stage_pt, data = clin_3) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-g.1 <- coxph(Surv(new_death, death_event)~ age, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-h.1 <- coxph(Surv(new_death, death_event)~ grade, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-i.1 <- coxph(Surv(new_death, death_event)~ b8t, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-j.1 <- coxph(Surv(new_death, death_event)~ days_to_collection, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-
-# Did not reach SS (p < 0.15):
-# gender
-# race
-# age_smoking_start
+# Not significant:
+# Grade, Met_Site_Bin, Node_Bin, Sex, Stage_M
 
 
 # Make Table ---------------------------------------------------------
 
-bind_rows(a.1, b.1, c.1, d.1, e.1, f.1, g.1, h.1, i.1, j.1) %>% 
-        mutate(stars = case_when(p.value < 0.001 ~ "***",
-                                 p.value < 0.01 ~ "**",
-                                 p.value < 0.05 ~ "*",
-                                 is.na(p.value) ~ NA_character_,
-                                 T ~ "NS"))%>% 
+mv %>% 
         dplyr::rename("HR" = estimate,
                       "SE" = std.error,
                       "p-value" = p.value,
                       " " = stars) %>%
-        left_join(signif_uni, by = c("feature" = "term")) %>%
-        select(-(logLik:stars), -feature) %>% 
-        mutate(term_2 = str_replace_all(term_2, "\\.|_", " ")) %>% 
-        gt(groupname_col = "term_2",
+        mutate(feature = str_replace(feature, "b8t", "B8T"),
+               term = str_replace(term, "hi.lo", "Hi/Lo"),
+               term = str_replace(term, "lo.lo", "Lo/Lo"),
+               term = str_replace(term, "lo.hi", "Lo/Hi"),
+               term = str_replace(term, "hi.hi", "Hi/Hi")) %>% 
+        gt(groupname_col = "feature",
            rowname_col = "term") %>% 
-        fmt_number(columns = 2:3) %>% 
-        fmt_scientific(columns = 4, decimals = 2) %>% 
+        fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = 5, decimals = 2) %>% 
         cols_align("center") %>% 
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Univariate Hazard Ratios") %>% 
-        tab_footnote("Features not trending significant (P < 0.15) by ANOVA: Sex, Race, Age-Smoking-Start",
+        tab_header(title = "Multivariate Hazard Ratios") %>% 
+        tab_footnote("Feature not trending significant (P < 0.15) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis Stage",
                      locations = cells_column_labels("p-value")) %>% 
-        tab_footnote("p-value by ANOVA (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
-                     location = cells_row_groups(starts_with("mRNA"))) %>% 
-        tab_footnote("Missing values are due to low sample number/unreliable estimates",
-                     location = cells_row_groups(matches("^stage \\(|^stage pt"))) %>% 
         cols_width(vars(`p-value`) ~ px(130),
                    vars(HR, SE, " ") ~ px(60)) %>%
         tab_options(table.width = px(500)) %>% 
-        gtsave("./figures/tables/blca_risk_table_uni.png") 
+        gtsave("./figures/tables/risk_table_multi_blca.png") 
 
-
-# Multivariate -------------------------------------------------------
-
-# Adjusting for age
-
-# Anovas -------------------------------------------------------------
-
-
-a <- coxph(Surv(new_death, death_event) ~ age + sex + b8t, data = clin) %>% 
-        anova() %>%  
-        tidy()
-
-b <- coxph(Surv(new_death, death_event) ~ age + mRNA.cluster + b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-
-c <- coxph(Surv(new_death, death_event) ~ age + stage + b8t, data = clin_2) %>% 
-        anova() %>% 
-        tidy()
-
-d <- coxph(Surv(new_death, death_event) ~ age + stage_ct + b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-
-e <- coxph(Surv(new_death, death_event) ~ age + stage_m + b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-f <- coxph(Surv(new_death, death_event) ~ age + stage_n + b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-
-g <- coxph(Surv(new_death, death_event) ~ age + stage_pt + b8t, data = clin_3) %>% 
-        anova() %>% 
-        tidy()
-
-h <- coxph(Surv(new_death, death_event) ~ age + grade + b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-
-i <- coxph(Surv(new_death, death_event) ~ age + days_to_collection + b8t, data = clin) %>% 
-        anova() %>% 
-        tidy()
-
-signif_multi <- 
-        bind_rows(a, b, c, d, e, f, g, h, i) %>% 
-        filter(term != "NULL") %>% 
-        filter(term != "age") %>% 
-        mutate(stars = case_when(p.value < 0.001 ~ "(***)",
-                                 p.value < 0.01 ~ "(**)",
-                                 p.value < 0.05 ~ "(*)",
-                                 T ~ "(NS)")) %>% 
-        unite(term_2, term, stars, sep = " ", remove = F)
-
-# In all instances, b8t fails to reach significance when placed as the first predictor
-# However, when adjusting for mRNA.cluster, b8t shows significance
-
-
-
-
-# Cox with Levels ----------------------------------------------------
-
-# Now look at coxph ratios for each level that reached ss
-
-colnames_search <- paste(colnames(clin), collapse = "|")
-
-make_reflevel_table <- function(df) {
-        name <- unique({{df$feature}})
-        if(is.factor(clin[[name]])) {
-                ref_df <- data.frame(feature = name, term = levels(clin[[name]])[1], estimate = 1, std.error = NA, p.value = NA)
-                df <- bind_rows(ref_df, df)
-        }
-        df
-}
-
-retidy <- function(df) {
-        df %>% 
-                mutate(feature  = str_extract(term, colnames_search),
-                       term = str_remove(term, colnames_search)) %>% 
-                relocate(feature, .before = everything()) %>% 
-                select(-statistic) %>% 
-                make_reflevel_table()
-}
-
-a.1 <- coxph(Surv(new_death, death_event) ~ mRNA.cluster, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-b.1 <- coxph(Surv(new_death, death_event)~ stage, data = clin_2) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-c.1 <- coxph(Surv(new_death, death_event)~ stage_ct, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-d.1 <- coxph(Surv(new_death, death_event)~ stage_m, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-e.1 <- coxph(Surv(new_death, death_event)~ stage_n, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-f.1 <- coxph(Surv(new_death, death_event)~ stage_pt, data = clin_3) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-g.1 <- coxph(Surv(new_death, death_event)~ age, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-h.1 <- coxph(Surv(new_death, death_event)~ grade, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-i.1 <- coxph(Surv(new_death, death_event)~ b8t, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-j.1 <- coxph(Surv(new_death, death_event)~ days_to_collection, data = clin) %>% 
-        tidy(exponentiate = T) %>% 
-        retidy()
-
-# Did not reach SS (p < 0.15):
-# gender
-# race
-# age_smoking_start
-
-
-# Make Table ---------------------------------------------------------
-
-bind_rows(a.1, b.1, c.1, d.1, e.1, f.1, g.1, h.1, i.1, j.1) %>% 
-        mutate(stars = case_when(p.value < 0.001 ~ "***",
-                                 p.value < 0.01 ~ "**",
-                                 p.value < 0.05 ~ "*",
-                                 is.na(p.value) ~ NA_character_,
-                                 T ~ "NS"))%>% 
-        dplyr::rename("HR" = estimate,
-                      "SE" = std.error,
-                      "p-value" = p.value,
-                      " " = stars) %>%
-        left_join(signif_uni, by = c("feature" = "term")) %>%
-        select(-(logLik:stars), -feature) %>% 
-        mutate(term_2 = str_replace_all(term_2, "\\.|_", " ")) %>% 
-        gt(groupname_col = "term_2",
-           rowname_col = "term") %>% 
-        fmt_number(columns = 2:3) %>% 
-        fmt_scientific(columns = 4, decimals = 2) %>% 
-        cols_align("center") %>% 
-        tab_style(style = cell_text(align = "right"), 
-                  locations = cells_stub()) %>% 
-        fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Univariate Hazard Ratios") %>% 
-        tab_footnote("Features not trending significant (P < 0.15) by ANOVA: Sex, Race, Age-Smoking-Start",
-                     locations = cells_column_labels("p-value")) %>% 
-        tab_footnote("p-value by ANOVA (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
-                     location = cells_row_groups(starts_with("mRNA"))) %>% 
-        tab_footnote("Missing values are due to low sample number/unreliable estimates",
-                     location = cells_row_groups(matches("^stage \\(|^stage pt"))) %>% 
-        cols_width(vars(`p-value`) ~ px(130),
-                   vars(HR, SE, " ") ~ px(60)) %>%
-        tab_options(table.width = px(500)) %>% 
-        gtsave("./figures/tables/blca_risk_table_uni.png") 
-
-
-
-
-
-
-# Forward Selection --------------------------------------------------
-
-
-# Fwd selection, B8T as predictor, not forcing first -----------------
-
-a <- coxph(Surv(new_death, death_event)~mRNA.cluster, clin)
-b <- coxph(Surv(new_death, death_event)~stage, clin_2)
-c <- coxph(Surv(new_death, death_event)~stage_ct, clin)
-d <- coxph(Surv(new_death, death_event)~stage_m, clin)
-e <- coxph(Surv(new_death, death_event)~stage_n, clin)
-f <- coxph(Surv(new_death, death_event)~stage_pt, clin_3)
-g <- coxph(Surv(new_death, death_event)~age, clin)
-h <- coxph(Surv(new_death, death_event)~grade, clin)
-i <- coxph(Surv(new_death, death_event)~b8t, clin)
-j <- coxph(Surv(new_death, death_event)~days_to_collection, clin)
-
-anova(a) # 6.98e-4
-anova(b) # 1.50e-7
-anova(c) # 0.13
-anova(d) # 4.81e-3
-anova(e) # 9.38e-6
-anova(f) # 6.93e-5
-anova(g) # 2.00e-5
-anova(h) # 0.07
-anova(i) # 0.14
-anova(j) # 1.90e-2
-
-
-a.1 <- coxph(Surv(new_death, death_event) ~ stage + mRNA.cluster, clin_2)
-b.1 <- coxph(Surv(new_death, death_event) ~ stage + stage_ct, clin_2)
-c.1 <- coxph(Surv(new_death, death_event) ~ stage + stage_m, clin_2)
-d.1 <- coxph(Surv(new_death, death_event) ~ stage + stage_n, clin_2)
-e.1 <- coxph(Surv(new_death, death_event) ~ stage + stage_pt, clin_3)
-f.1 <- coxph(Surv(new_death, death_event) ~ stage + age, clin_2)
-g.1 <- coxph(Surv(new_death, death_event) ~ stage + grade, clin_2)
-h.1 <- coxph(Surv(new_death, death_event) ~ stage + b8t, clin_2)
-i.1 <- coxph(Surv(new_death, death_event) ~ stage + days_to_collection, clin_2)
-
-anova(a.1) # 0.054
-anova(b.1) # 0.156
-anova(c.1) # 0.122
-anova(d.1) # 0.775
-anova(e.1) # 0.243
-anova(f.1) # 1.25e-4
-anova(g.1) # 0.378
-anova(h.1) # 0.381
-anova(i.1) # 4.47e-3
