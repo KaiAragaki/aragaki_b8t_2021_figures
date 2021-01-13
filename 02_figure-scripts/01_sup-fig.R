@@ -111,7 +111,6 @@ ggplot(fig_s1a, aes(x = Best.Confirmed.Overall.Response,
         labs(x = NULL, y = "B-cell Signature") +
         coord_cartesian(ylim = c(-1, 1), clip = "off") + 
         theme(plot.margin = unit(c(12, 1, 1, 1), "lines"))
-
 ggsave("./figures/fig_s1/fig_s1a.png", width = 5, height = 7)
 
 
@@ -202,4 +201,61 @@ ggplot(fig_s1c, aes(b8t, fill = Best.Confirmed.Overall.Response)) +
         labs(fill = "", x = "B-cell/CD8+ T-cell Signature", y = "Proportion")
 
 ggsave("./figures/fig_s1/fig_s1c.png", width = 4, height = 3)
+
+
+# Fig S1D: Survival vs B8T (Platinum) -------------------------------------
+
+plat <- filter(col_data, Received.platinum == "Y")
+
+png(filename = "./figures/fig_s1/fig_s1d.png", width = 5.5, height = 6, units = "in", res = 288)
+ggsurv <- survfit(Surv(os, censOS) ~ b8t, data = plat) %>% 
+        ggsurvplot(pval = T, 
+                   risk.table = T,
+                   risk.table.height = 0.3,
+                   risk.table.title = "No. at risk",
+                   palette = viridis(4, end = 0.95, direction = -1),
+                   legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
+                   legend.title = "B8T\n(Platinum-Treated)", 
+                   xlab = "Overall Survival (Months)", 
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 12,
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
+
+
+# Fig S1E: Survival vs B8T (No Platinum) ----------------------------------
+
+no_plat <- filter(col_data, Received.platinum == "N")
+
+png(filename = "./figures/fig_s1/fig_s1e.png", width = 5.5, height = 6, units = "in", res = 288)
+ggsurv <- survfit(Surv(os, censOS) ~ b8t, data = no_plat) %>% 
+        ggsurvplot(pval = T, 
+                   risk.table = T,
+                   risk.table.height = 0.3,
+                   risk.table.title = "No. at risk",
+                   palette = viridis(4, end = 0.95, direction = -1),
+                   legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
+                   legend.title = "B8T\n(No Platinum)", 
+                   xlab = "Overall Survival (Months)", 
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 12,
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
+
 
