@@ -267,23 +267,3 @@ ggsurv
 dev.off()
 
 
-# Fig 2h: B8T Lo/Lo vs TMB Survival ---------------------------------------
-
-
-fig_2h <- col_data %>% 
-        unite(sex_tmb, gender, tmb_bins) %>% 
-        mutate(sex_tmb = factor(sex_tmb, levels = c("male_Hi", "male_Lo", "female_Hi", "female_Lo")))
-
-png(filename = "./figures/fig_2/fig_2h.png", width = 5.2, height = 4, units = "in", res = 288)
-survfit(Surv(os, censOS) ~ sex_tmb, data = fig_2h) %>% 
-        ggsurvplot(pval = T, 
-                   palette = viridis(4, end = 0.95, direction = -1),
-                   legend.title = "Sex/TMB",
-                   legend.labs = c("M/Hi", "M/Lo", "F/Hi", "F/Lo"),
-                   xlab = "Overall Survival (Months)", 
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 10,
-                   legend = "right",
-                   pval.coord = c(0, 0.05))
-dev.off()
