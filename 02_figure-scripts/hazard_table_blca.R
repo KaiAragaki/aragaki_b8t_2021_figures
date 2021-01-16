@@ -17,10 +17,10 @@ library(broom)
 blca <- read_rds("./data/tcga-blca/C_04_merge-gsva.rds")
 
 clin <- as_tibble(colData(blca)) %>% 
-        mutate(b.bin = if_else(b_cell > 0, "hi", "lo"),
-               b.bin = factor(b.bin, levels = c("lo", "hi")),
-               t.bin = if_else(cd8_rose > 0, "hi", "lo"),
-               t.bin = factor(t.bin, levels = c("lo", "hi")),) %>% 
+        mutate(b.bin = if_else(b_cell > 0, "Hi", "Lo"),
+               b.bin = factor(b.bin, levels = c("Lo", "Hi")),
+               t.bin = if_else(cd8_rose > 0, "Hi", "Lo"),
+               t.bin = factor(t.bin, levels = c("Lo", "Hi"))) %>% 
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(sex = patient.gender,
                race = patient.race_list.race) %>% 
@@ -54,8 +54,8 @@ clin <- as_tibble(colData(blca)) %>%
                                     str_detect(stage_ct, "t3") ~ "t3",
                                     str_detect(stage_ct, "t4") ~ "t4",
                                     T ~ stage_ct),
-               stage_ct_bin = case_when(stage_ct == "t1" ~ "<t2",
-                                        stage_ct %in% c("t2", "t3", "t4") ~ ">=t2",
+               stage_ct_bin = case_when(stage_ct == "t1" ~ "<T2",
+                                        stage_ct %in% c("t2", "t3", "t4") ~ ">=T2",
                                         T ~ stage_ct),
                stage_pt = case_when(str_detect(stage_pt, "t1") ~ "t1",
                                     str_detect(stage_pt, "t2") ~ "t2",
@@ -66,8 +66,18 @@ clin <- as_tibble(colData(blca)) %>%
                                          met_site == "none" ~ "None",
                                          is.na(met_site) ~ NA_character_,
                                          T ~ "Other"),
-               node_bin = case_when(stage_n %in% c("n1", "n2", "n3") ~ ">n0",
-                                    T ~ stage_n)) %>% 
+               node_bin = case_when(stage_n %in% c("n1", "n2", "n3") ~ ">N0",
+                                    stage_n == "n0" ~ "N0",
+                                    stage_n == "nx" ~ "Nx",
+                                    T ~ stage_n),
+               stage_m = case_when(stage_m == "m0" ~ "M0",
+                                    stage_m == "m1" ~ "M1",
+                                    stage_m == "mx" ~ "Mx",
+                                    T ~ stage_m),
+               mRNA.cluster = factor(mRNA.cluster, 
+                                     levels = c("Basal_squamous", "Luminal", "Luminal_infiltrated", "Luminal_papillary", "Neuronal"),
+                                     labels = c("Basal Squamous", "Luminal", "Luminal Infiltrated", "Luminal Papillary", "Neuronal")),
+               grade = factor(grade, levels = c("low grade", "high grade"), labels = c("Low", "High"))) %>% 
         select(-stage_ct, -stage_pt, -met_site, -stage_n) %>% 
         mutate(across(where(is.character), as.factor))
 
@@ -170,6 +180,14 @@ df %>%
                       " " = stars) %>%
         select(-feature, -p.value.sc) %>% 
         relocate("p-value", .before =  " ") %>% 
+        mutate(term_2 = case_when(str_detect(term_2, "stage_m")            ~ "Metastasis",
+                                  str_detect(term_2, "age")                ~ "Age",
+                                  str_detect(term_2, "grade")              ~ "Grade",
+                                  str_detect(term_2, "mRNA.cluster")       ~ "TCGA Subtype",
+                                  str_detect(term_2, "days_to_collection") ~ "Days to Collection",
+                                  str_detect(term_2, "met_site_bin")       ~ "Site of Metastasis",
+                                  str_detect(term_2, "node_bin")           ~ "Node Status",
+                                  T                               ~ term_2)) %>% 
         gt(groupname_col = "term_2",
            rowname_col = "term") %>% 
         fmt_number(columns = 2:3, drop_trailing_zeros = T) %>% 
@@ -243,10 +261,18 @@ mv %>%
                       "p-value" = p.value,
                       " " = stars) %>%
         mutate(feature = str_replace(feature, "b8t", "B8T"),
-               term = str_replace(term, "hi.lo", "Hi/Lo"),
-               term = str_replace(term, "lo.lo", "Lo/Lo"),
-               term = str_replace(term, "lo.hi", "Lo/Hi"),
-               term = str_replace(term, "hi.hi", "Hi/Hi")) %>% 
+               term = str_replace(term, "Hi.Lo", "Hi/Lo"),
+               term = str_replace(term, "Lo.Lo", "Lo/Lo"),
+               term = str_replace(term, "Lo.Hi", "Lo/Hi"),
+               term = str_replace(term, "Hi.Hi", "Hi/Hi"),
+               term = str_replace(term, "(?<!fe)male", "Male"),
+               term = str_replace(term, "female", "Female"),
+               term = str_remove(term, "sex"),
+               feature = case_when(str_detect(feature, "age") ~ "Age",
+                                   str_detect(feature, "mRNA.cluster") ~ "TCGA Subtype",
+                                   str_detect(feature, "days_to_collection") ~ "Days to Collection",
+                                   str_detect(feature, "sex") ~ "Sex",
+                                   T ~ feature)) %>% 
         gt(groupname_col = "feature",
            rowname_col = "term") %>% 
         fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
@@ -256,7 +282,7 @@ mv %>%
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
         tab_header(title = "Multivariate Hazard Ratios") %>% 
-        tab_footnote("Feature not trending significant (P < 0.15) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis Stage",
+        tab_footnote("Feature not trending significant (P < 0.15) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis",
                      locations = cells_column_labels("p-value")) %>% 
         cols_width(vars(`p-value`) ~ px(130),
                    vars(HR, SE, " ") ~ px(60)) %>%

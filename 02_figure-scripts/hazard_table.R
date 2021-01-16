@@ -17,10 +17,10 @@ library(broom)
 imvigor <- read_rds("./data/imvigor210/dds-gsva.Rds")
 
 clin <- as_tibble(colData(imvigor)) %>% 
-        mutate(b.bin = if_else(b_cell > 0, "hi", "lo"),
-               b.bin = factor(b.bin, levels = c("lo", "hi")),
-               t.bin = if_else(cd8_rose > 0, "hi", "lo"),
-               t.bin = factor(t.bin, levels = c("lo", "hi")),) %>% 
+        mutate(b.bin = if_else(b_cell > 0, "Hi", "Lo"),
+               b.bin = factor(b.bin, levels = c("Lo", "Hi")),
+               t.bin = if_else(cd8_rose > 0, "Hi", "Lo"),
+               t.bin = factor(t.bin, levels = c("Lo", "Hi"))) %>% 
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(gender = factor(gender, levels = c("male", "female")),
                IC.Level = factor(IC.Level, levels = c("IC0", "IC1", "IC2+")),
@@ -33,7 +33,7 @@ clin <- as_tibble(colData(imvigor)) %>%
                Lund = factor(Lund),
                Lund2 = factor(Lund2),
                Immune.phenotype = factor(Immune.phenotype),
-               b8t = factor(b8t, levels = c("hi.lo", "lo.lo", "lo.hi", "hi.hi"))) %>% 
+               b8t = factor(b8t, levels = c("Hi.Lo", "Lo.Lo", "Lo.Hi", "Hi.Hi"), labels = c("Hi/Lo", "Lo/Lo", "Lo/Hi", "Hi/Hi"))) %>% 
         select(-sample, -subject_id, -contains("_null"), -ENA.CHECKLIST, 
                -sizeFactor, -tag, -val, -binaryResponse, 
                -Best.Confirmed.Overall.Response, -Enrollment.IC, -TC.Level, -b_cell,
@@ -154,7 +154,10 @@ df %>%
                term_2 = str_replace(term_2, "Received platinum", "Received Platinum"),
                term_2 = str_replace(term_2, "Sample collected pre platinum", "Sample Collected Pre-Platinum"),
                term_2 = str_replace(term_2, "Neoantigen burden per MB", "Neoantigen Burden/MB"),
-               term_2 = str_replace(term_2, "Immune phenotype", "Immune Phenotype")) %>% 
+               term_2 = str_replace(term_2, "Immune phenotype", "Immune Phenotype"),
+               term_2 = str_replace(term_2, "b8t", "B8T"),
+               term_2 = str_replace(term_2, "b bin", "BCGS"),
+               term_2 = str_replace(term_2, "t bin", "CD8TGS")) %>% 
         gt(groupname_col = "term_2",
            rowname_col = "term") %>% 
         fmt_number(columns = 2:3, drop_trailing_zeros = T) %>% 
@@ -195,9 +198,15 @@ make_reflevel_table <- function(df) {
         df
 }
 
+clin_complete <- dplyr::select(clin, b8t, IC.Level, Neoantigen.burden.per.MB, 
+                             Baseline.ECOG.Score, Met.Disease.Status, 
+                             Received.platinum, Lund2, os, censOS)
+clin_complete <- clin_complete[complete.cases(clin_complete),]
+
+
 mv <- coxph(Surv(os, censOS) ~ b8t + IC.Level + Neoantigen.burden.per.MB + 
                     Baseline.ECOG.Score + Met.Disease.Status + Received.platinum + 
-                    Lund2, data = clin) %>% 
+                    Lund2, data = clin_complete) %>% 
         tidy(exponentiate = T) %>%
         retidy() %>% 
         group_by(feature) %>% 
@@ -226,11 +235,7 @@ mv %>%
                feature = str_replace(feature, "Received platinum", "Received Platinum"),
                feature = str_replace(feature, "Sample collected pre platinum", "Sample Collected Pre-Platinum"),
                feature = str_replace(feature, "Neoantigen burden per MB", "Neoantigen Burden/MB"),
-               feature = str_replace(feature, "b8t", "B8T"),
-               term = str_replace(term, "hi.lo", "Hi/Lo"),
-               term = str_replace(term, "lo.lo", "Lo/Lo"),
-               term = str_replace(term, "lo.hi", "Lo/Hi"),
-               term = str_replace(term, "hi.hi", "Hi/Hi")) %>% 
+               feature = str_replace(feature, "b8t", "B8T")) %>% 
         gt(groupname_col = "feature",
            rowname_col = "term") %>% 
         fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
