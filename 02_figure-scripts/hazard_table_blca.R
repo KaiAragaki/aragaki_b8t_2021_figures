@@ -23,7 +23,8 @@ clin <- as_tibble(colData(blca)) %>%
                t.bin = factor(t.bin, levels = c("lo", "hi")),) %>% 
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(sex = patient.gender,
-               race = patient.race_list.race) %>% 
+               race = patient.race_list.race,
+               b8t = factor(b8t, levels = c("hi.lo", "lo.lo", "lo.hi", "hi.hi"))) %>% 
         select(sex, race, contains("metastat"), contains("stage"), 
                contains("age"), contains("smok"), contains("grade"), contains("lund"), 
                contains("mRNA"), "b8t", new_death, death_event, contains("sample.days_to_collection")) %>% 
@@ -227,7 +228,6 @@ mv <- coxph(Surv(new_death, death_event) ~ b8t*sex + stage_m + age + grade + mRN
         mutate(stars = case_when(p.value < 0.001 ~ "(***)",
                                  p.value < 0.01 ~ "(**)",
                                  p.value < 0.05 ~ "(*)",
-                                 p.value < 0.15 ~ "(#)",
                                  T ~ "(NS)")) %>% 
         filter(!(feature %in% c("grade", "met_site_bin", "node_bin", "stage_m")))
 
@@ -256,7 +256,7 @@ mv %>%
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
         tab_header(title = "Multivariate Hazard Ratios") %>% 
-        tab_footnote("Feature not trending significant (P < 0.15) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis Stage",
+        tab_footnote("Feature not significant (P < 0.05) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis Stage, Sex, B8T",
                      locations = cells_column_labels("p-value")) %>% 
         cols_width(vars(`p-value`) ~ px(130),
                    vars(HR, SE, " ") ~ px(60)) %>%
