@@ -29,6 +29,86 @@ col_data <- colData(imvigor) %>%
                gender = factor(gender, levels = c("male", "female")),
                IC.Level = factor(IC.Level, levels = c("IC2+", "IC1", "IC0")))
 
+# Fig 4b: Sex vs B8T vs Survival ------------------------------------------
+
+hi_hi <- col_data %>% 
+        filter(b8t == "hi_hi")
+
+mt <- pairwise_survdiff(Surv(os, censOS) ~ b8t + gender, data = col_data, p.adjust.method = "none") %>% 
+        tidy()
+
+considered_comparisons <- mt %>% 
+        separate(group1, c("b8t_1", "sex_1"), sep = ",") %>% 
+        separate(group2, c("b8t_2", "sex_2"), sep = ",") %>% 
+        filter(b8t_1 == b8t_2) %>% 
+        mutate(adj = p.adjust(p.value, "BH"))
+
+png(filename = "./figures/fig_4/fig_4b.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(os, censOS) ~ gender, data = hi_hi) %>% 
+        ggsurvplot(pval = round(considered_comparisons$adj[1], 2),
+                   risk.table = T,
+                   risk.table.height = 0.22,
+                   risk.table.title = "No. at risk",
+                   palette = c("#1D557D", "#EB9BC7"),
+                   xlab = "Overall Survival (Months)", 
+                   legend.title = "Sex\n(B8T = Hi/Hi)",
+                   legend.labs = c("Male", "Female"),
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 10,
+                   legend = "right",
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
+
+
+
+# Fig 4b: Sex vs B8T vs Survival ------------------------------------------
+
+lo_lo <- col_data %>% 
+        filter(b8t == "lo_lo")
+
+mt <- pairwise_survdiff(Surv(os, censOS) ~ b8t + gender, 
+                        data = col_data, p.adjust.method = "none") %>% 
+        tidy()
+
+considered_comparisons <- mt %>% 
+        separate(group1, c("b8t_1", "sex_1"), sep = ",") %>% 
+        separate(group2, c("b8t_2", "sex_2"), sep = ",") %>% 
+        filter(b8t_1 == b8t_2) %>% 
+        mutate(adj = p.adjust(p.value, "BH"))
+
+png(filename = "./figures/fig_4/fig_4c.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(os, censOS) ~ gender, data = lo_lo) %>% 
+        ggsurvplot(pval = round(considered_comparisons$adj[3], 2),
+                   risk.table = T,
+                   risk.table.height = 0.22,
+                   risk.table.title = "No. at risk",
+                   palette = c("#1D557D", "#EB9BC7"),
+                   xlab = "Overall Survival (Months)", 
+                   legend.title = "Sex\n(B8T = Lo/Lo)",
+                   legend.labs = c("Male", "Female"),
+                   font.xtickslab = 15, 
+                   font.ytickslab = 15, 
+                   font.legend = 10,
+                   legend = "right",
+                   pval.coord = c(0, 0.05))
+ggsurv$table <- ggsurv$table +
+        ylab(NULL) + 
+        xlab(NULL) +
+        theme(axis.text.x = element_blank(),
+              axis.ticks = element_blank(),
+              axis.line = element_blank())
+ggsurv
+dev.off()
+
+
 
 # Fig S4a: B-Cell or T-cell Signature Distribution across Sex -------------
 

@@ -42,27 +42,36 @@ col_data <- colData(imvigor) %>%
 fig_3a <- col_data %>% 
         filter(!is.na(IC.Level))
 
-png(filename = "./figures/fig_3/fig_3a.png", width = 5.5, height = 5.5, units = "in", res = 288)
+png(filename = "./figures/fig_3/fig_3a.png", width = 5.5, height = 5.6, units = "in", res = 288)
 ggsurv <- survfit(Surv(os, censOS) ~ IC.Level, data = fig_3a) %>% 
         ggsurvplot(pval = T, 
                    risk.table = T,
                    risk.table.height = 0.25,
                    risk.table.title = "No. at risk",
                    palette = viridis(3, end = 0.95, direction = -1),
+                   title = "A.",
                    xlab = "Overall Survival (Months)", 
-                   legend.title = "IC Level",
+                   legend.title = "PD-L1\nIC Level",
                    legend.labs = c("IC2+", "IC1", "IC0"),
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 10,
+                   font.legend = 15,
+                   fontsize = 5,
                    legend = "right",
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
@@ -72,27 +81,36 @@ dev.off()
 fig_3b <- col_data %>% 
         filter(!is.na(IC.Level), IC.Level == "IC2+")
 
-png(filename = "./figures/fig_3/fig_3b.png", width = 5.5, height = 5.5, units = "in", res = 288)
+png(filename = "./figures/fig_3/fig_3b.png", width = 5.7, height = 5.8, units = "in", res = 288)
 ggsurv <- survfit(Surv(os, censOS) ~ IC.Level + b8t, data = fig_3b) %>% 
         ggsurvplot(pval = T, 
                    risk.table = T,
-                   risk.table.height = 0.3,
+                   risk.table.height = 0.27,
                    risk.table.title = "No. at risk",
                    palette = viridis(4, end = 0.95, direction = -1),
-                   legend.title = "B8T Sig.\n(IC = 2+)",
+                   title = "B.",
+                   legend.title = "B8T Sig.\n(PD-L1 IC = 2+)",
                    legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
                    xlab = "Overall Survival (Months)",
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 10,
+                   font.legend = 15,
+                   fontsize = 5,
                    legend = "right",
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
@@ -102,27 +120,36 @@ dev.off()
 fig_3c <- col_data %>% 
         filter(!is.na(IC.Level), IC.Level %in% c("IC0", "IC1"))
 
-png(filename = "./figures/fig_3/fig_3c.png", width = 5.5, height = 5.5, units = "in", res = 288)
+png(filename = "./figures/fig_3/fig_3c.png", width = 5.77, height = 5.8, units = "in", res = 288)
 ggsurv <- survfit(Surv(os, censOS) ~ b8t, data = fig_3c) %>% 
         ggsurvplot(pval = T, 
                    risk.table = T,
-                   risk.table.height = 0.3,
+                   risk.table.height = 0.27,
                    risk.table.title = "No. at risk",
                    palette = viridis(4, end = 0.95, direction = -1),
-                   legend.title = "B8T Sig.\n(IC = 0/1)",
+                   title = "C.",
+                   legend.title = "B8T Sig.\n(PL-L1 IC = 0/1)",
                    legend.labs = c("Hi/Hi", "Lo/Hi", "Lo/Lo", "Hi/Lo"),
                    xlab = "Overall Survival (Months)",
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 10,
+                   font.legend = 15,
+                   fontsize = 5,
                    legend = "right",
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
@@ -156,22 +183,34 @@ ggsurv <- survfit(Surv(os, censOS) ~ IC_bi + b8t, data = fig_3d_his) %>%
                    risk.table.height = 0.22,
                    risk.table.title = "No. at risk",
                    palette = viridis(2, end = 0.95, direction = -1),
-                   legend.title = "IC Level\n(B8T = Hi/Hi)",
+                   title = "D.",
+                   legend.title = "PL-L1\nIC Level\n(B8T = Hi/Hi)",
                    xlab = "Overall Survival (Months)", 
                    legend.labs = c("IC2+", "IC0/1"), 
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 10,
+                   font.legend = 15,
+                   fontsize = 5,
                    legend = "right",
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
+
+
+# Fig 3e: Comparison of all signatures -------------------------------
 
 hi_hi <- col_data %>% 
         filter(b8t == "hi_hi") %>% 
@@ -204,28 +243,45 @@ hihihihi <- col_data %>%
 all_type <- rbind(hi_hi, tmb_hi, ic2, tmb_hi_pdl1_hi, hihihi, hihihi2, hihihihi) %>% 
         mutate(type = factor(type, levels = c("B8T, TMB Hi, PD-L1 IC2+", "B8T, TMB Hi", "TMB Hi, PD-L1 IC2+", "B8T Hi, PD-L1 IC2+", "B8T Hi/Hi", "PD-L1 IC2+", "TMB Hi")))
 
-png(filename = "./figures/fig_3/fig_3e.png", width = 5.5, height = 7, units = "in", res = 288)
+png(filename = "./figures/fig_3/fig_3e.png", width = 5.8, height = 7, units = "in", res = 288)
 ggsurv <- survfit(Surv(os, censOS) ~ type, data = all_type) %>% 
         ggsurvplot(pval = T, 
                    risk.table = T,
                    risk.table.height = 0.4, 
                    risk.table.title = "No. at risk",
                    tables.y.text = F,
-                   palette = c("#FF0000FF", "#FDE725FF", "#6BCD5AFF", "#1E9C89FF", "#31668EFF", "#482576FF", "#000000FF"),
+                   title = "E.",
+                   palette = c("#FF0000FF", "#FDE725FF", "#6BCD5AFF", 
+                               "#1E9C89FF", "#31668EFF", "#482576FF", 
+                               "#000000FF"),
                    legend.title = "Signature", 
-                   legend.labs = c("\nB8T Hi\nTMB Hi\nPD-L1 IC2+\n", "\nB8T Hi\nTMB Hi\n", "\nTMB Hi\nPD-L1 IC2+\n", "\nB8T Hi\nPD-L1 IC2+\n", "B8T Hi", "PD-L1 IC2+", "TMB Hi"),
+                   legend.labs = c("\nB8T Hi\nTMB Hi\nPD-L1 IC2+\n", 
+                                   "\nB8T Hi\nTMB Hi\n", 
+                                   "\nTMB Hi\nPD-L1 IC2+\n", 
+                                   "\nB8T Hi\nPD-L1 IC2+\n", 
+                                   "B8T Hi", 
+                                   "PD-L1 IC2+", 
+                                   "TMB Hi"),
                    xlab = "Overall Survival (Months)",
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 10,
+                   font.legend = 15,
+                   fontsize = 5,
                    legend = "right",
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
