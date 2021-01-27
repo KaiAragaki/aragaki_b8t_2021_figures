@@ -41,7 +41,7 @@ clin <- as_tibble(colData(imvigor)) %>%
         relocate(Lund2, .before = "Lund")
 
 
-# Univariate ---------------------------------------------------------------
+# Univariable ---------------------------------------------------------------
 
 
 # Logrank Test -------------------------------------------------------------
@@ -166,7 +166,7 @@ df %>%
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Univariate Hazard Ratios") %>% 
+        tab_header(title = "Univariable Hazard Ratios") %>% 
         tab_footnote("Features not trending significant (P < 0.15) by logrank test: Sex, Race, Intravesical BCG, Tobacco Use History, TCGA Subtype, Tissue Site",
                      locations = cells_column_labels("p-value")) %>% 
         tab_footnote("p-value by logrank test (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
@@ -177,7 +177,7 @@ df %>%
         gtsave("./figures/tables/risk_table_uni.png") 
 
 
-# Multivariate -------------------------------------------------------
+# Multivariable -------------------------------------------------------
 
 retidy <- function(df) {
         df %>% 
@@ -244,7 +244,7 @@ mv %>%
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Multivariate Hazard Ratios") %>% 
+        tab_header(title = "Multivariable Hazard Ratios") %>% 
         tab_footnote("Feature not significant (P < 0.05) by logrank test: Received Platinum",
                      locations = cells_column_labels("p-value")) %>% 
         cols_width(vars(`p-value`) ~ px(130),

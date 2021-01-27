@@ -84,11 +84,11 @@ clin <- as_tibble(colData(blca)) %>%
 
 # Didn't do stage_pt_bin because it was causing convergence issues due to low <t2.
 
-# Univariate ---------------------------------------------------------
+# Univariable ---------------------------------------------------------
 
 # Logrank Test -------------------------------------------------------------
 
-# Cutoff for consideration in multivariate analysis ("denoted 'sig'"): 
+# Cutoff for consideration in multivariable analysis ("denoted 'sig'"): 
 # p < 0.15
 
 lr <- function(var) {
@@ -197,7 +197,7 @@ df %>%
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Univariate Hazard Ratios") %>% 
+        tab_header(title = "Univariable Hazard Ratios") %>% 
         tab_footnote("Features not trending significant (P < 0.15) by logrank test: Sex, Race, Age Started Smoking, B8T, Clinical Stage",
                      locations = cells_column_labels("p-value")) %>% 
         tab_footnote("p-value by logrank test (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
@@ -210,7 +210,7 @@ df %>%
 
 
 
-# Multivariate -------------------------------------------------------
+# Multivariable -------------------------------------------------------
 
 complete_clin <- clin %>% 
         select(b8t, sex, stage_m, age, grade, mRNA.cluster, days_to_collection, met_site_bin, node_bin, new_death, death_event)
@@ -281,7 +281,7 @@ mv %>%
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Multivariate Hazard Ratios") %>% 
+        tab_header(title = "Multivariable Hazard Ratios") %>% 
         tab_footnote("Feature not significant (P < 0.05) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis Stage, Sex, B8T",
                      locations = cells_column_labels("p-value")) %>% 
         cols_width(vars(`p-value`) ~ px(130),
