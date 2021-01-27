@@ -282,11 +282,7 @@ mv %>%
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
         tab_header(title = "Multivariate Hazard Ratios") %>% 
-<<<<<<< HEAD
         tab_footnote("Feature not significant (P < 0.05) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis Stage, Sex, B8T",
-=======
-        tab_footnote("Feature not trending significant (P < 0.15) by logrank test: Grade, Site of Metastasis, Node Status, Metastasis",
->>>>>>> 2b480769ac0dace750ae34f138d4835690a4e216
                      locations = cells_column_labels("p-value")) %>% 
         cols_width(vars(`p-value`) ~ px(130),
                    vars(HR, SE, " ") ~ px(60)) %>%

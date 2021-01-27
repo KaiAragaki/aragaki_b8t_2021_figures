@@ -14,6 +14,7 @@ library(survminer)
 library(viridis)
 library(DESeq2)
 library(broom)
+library(gt)
 
 
 # Read in Data ------------------------------------------------------------
@@ -245,8 +246,7 @@ all_type <- rbind(hi_hi, tmb_hi, ic2, tmb_hi_pdl1_hi, hihihi, hihihi2, hihihihi)
 
 png(filename = "./figures/fig_3/fig_3e.png", width = 5.8, height = 7, units = "in", res = 288)
 ggsurv <- survfit(Surv(os, censOS) ~ type, data = all_type) %>% 
-        ggsurvplot(pval = T, 
-                   risk.table = T,
+        ggsurvplot(risk.table = T,
                    risk.table.height = 0.4, 
                    risk.table.title = "No. at risk",
                    tables.y.text = F,
@@ -284,6 +284,15 @@ ggsurv$table <- ggsurv$table +
               plot.title = element_text(size = 20))
 ggsurv
 dev.off()
+
+all_type %>% 
+        group_by(type) %>% 
+        summarize(Deaths = sum(censOS),
+                  Total = n()) %>% 
+        mutate(`%` = Deaths/Total * 100) %>% 
+        gt(rowname_col = "type") %>% 
+        fmt_number("%", decimals = 0) %>% 
+        gtsave("./figures/fig_3/fig_3e_tab.png")
 
 
 # Fig 3f: Venn Diagram Counts ---------------------------------------------
