@@ -35,11 +35,12 @@ col_data <- colData(blca) %>%
 
 # Fig 5a: B8T vs TCGA BLCA Survival ---------------------------------------
 
-png(filename = "./figures/fig_5/fig_5a.png", width = 5.5, height = 5.5, units = "in", res = 288)
+png(filename = "./figures/fig_5/fig_5a.png", width = 5.5, height = 5.7, units = "in", res = 288)
 ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = col_data) %>% 
         ggsurvplot(pval = T, 
                    palette = viridis(4, end = 0.95, direction = -1),
                    risk.table = T,
+                   title = "A.",
                    risk.table.height = 0.3,
                    risk.table.title = "No. at risk",
                    legend.title = "B8T", 
@@ -49,33 +50,46 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = col_data) %>%
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
+                   xlim = c(0, 1800),
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 12,
-                   xlim = c(0, 1800),
+                   font.legend = 15,
+                   fontsize = 5,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
 
+<<<<<<< HEAD
 
 # Fig 5a2: Hi/Hi vs Others -------------------------------------------
+=======
+# Fig 5b: Hi/Hi vs Others -------------------------------------------
+>>>>>>> 2b480769ac0dace750ae34f138d4835690a4e216
 
-png(filename = "./figures/fig_5/fig_5a2.png", width = 5.5, height = 5.5, units = "in", res = 288)
+png(filename = "./figures/fig_5/fig_5b.png", width = 5.5, height = 5.5, units = "in", res = 288)
 ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = col_data) %>% 
         ggsurvplot(pval = T, 
                    palette = viridis(2, end = 0.95, direction = -1),
                    risk.table = T,
+                   title = "B.",
                    risk.table.height = 0.3,
                    risk.table.title = "No. at risk",
                    legend.title = "B8T", 
-                   legend.labs = c("Hi/Hi", "All other"),
+                   legend.labs = c("Hi/Hi", "Other"),
                    xlab = "Overall Survival (Months)", 
                    #subtitle="A2    ALL MIBC Tumors",
                    legend ="right",
@@ -83,30 +97,38 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = col_data) %>%
                    break.x.by = 300,
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 12,
+                   font.legend = 15,
+                   fontsize = 5,
                    xlim = c(0, 1800),
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
-
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
 
-# Fig 5b: B8T vs TCGA BLCA Survival in Females -----------------------------
+# Fig 5c: B8T vs TCGA BLCA Survival in Females -----------------------------
 
-fig_5b <- col_data %>% 
+fig_5c <- col_data %>% 
         filter(patient.gender == "female")
 
-png(filename = "./figures/fig_5/fig_5b.png", width = 5.5, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5b) %>% 
+png(filename = "./figures/fig_5/fig_5c.png", width = 5.5, height = 5.7, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5c) %>% 
         ggsurvplot(pval = T,
                    palette = viridis(4, end = 0.95, direction = -1),
                    risk.table = T,
+                   title = "C.",
                    risk.table.height = 0.3,
                    risk.table.title = "No. at risk",
                    legend.title = "B8T\n(Females)", 
@@ -116,64 +138,95 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5b) %>%
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
+                   xlim = c(0, 1800),
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 12,
-                   xlim = c(0, 1800),
+                   font.legend = 15,
+                   fontsize = 5,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
 
+<<<<<<< HEAD
 
 # Fig 5b2: Hi/Hi vs Others - Females ---------------------------------
+=======
+# Fig 5d: Hi/Hi vs Others - Females ---------------------------------
+>>>>>>> 2b480769ac0dace750ae34f138d4835690a4e216
 
-png(filename = "./figures/fig_5/fig_5b2.png", width = 5.5, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = fig_5b) %>% 
+png(filename = "./figures/fig_5/fig_5d.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = fig_5c) %>% 
         ggsurvplot(pval = T,
                    palette = viridis(2, end = 0.95, direction = -1),
                    risk.table = T,
+                   title = "D.",
                    risk.table.height = 0.3,
                    risk.table.title = "No. at risk",
                    legend.title = "B8T\n(Females)", 
+<<<<<<< HEAD
                    legend.labs = c("Hi/Hi", "All other"),
                    xlab = "Overall Survival (Months)",
                    #subtitle="B2     Female MIBC",
+=======
+                   legend.labs = c("Hi/Hi", "Other"),
+                   xlab = "Overall Survival (Months)", 
+>>>>>>> 2b480769ac0dace750ae34f138d4835690a4e216
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
+                   xlim = c(0, 1800),
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 12,
-                   xlim = c(0, 1800),
+                   font.legend = 15,
+                   fontsize = 5,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
 
+<<<<<<< HEAD
 
 # Fig 5c: B8T vs TCGA BLCA Survival in Males -------------------------------
+=======
+# Fig e: B8T vs TCGA BLCA Survival in Males -------------------------------
+>>>>>>> 2b480769ac0dace750ae34f138d4835690a4e216
 
-fig_5c <- col_data %>% 
+fig_5e <- col_data %>% 
         filter(patient.gender == "male")
 
-png(filename = "./figures/fig_5/fig_5c.png", width = 5.5, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5c) %>% 
+png(filename = "./figures/fig_5/fig_5e.png", width = 5.5, height = 5.7, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5e) %>% 
         ggsurvplot(pval = T, 
                    palette = viridis(4, end = 0.95, direction = -1),
                    risk.table = T,
+                   title = "E.",
                    risk.table.height = 0.3,
                    risk.table.title = "No. at risk",
                    legend.title = "B8T\n(Males)", 
@@ -183,49 +236,70 @@ ggsurv <- survfit(Surv(new_death, death_event) ~ b8t, data = fig_5c) %>%
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
+                   xlim = c(0, 1800),
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 12,
-                   xlim = c(0, 1800),
+                   font.legend = 15,
+                   fontsize = 5,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
 
 
+# Fig 5f: Hi/Hi vs Others - Males -----------------------------------
 
-# Fig 5c2: Hi/Hi vs Others - Males -----------------------------------
-
-
-png(filename = "./figures/fig_5/fig_5c2.png", width = 5.5, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = fig_5c) %>% 
+png(filename = "./figures/fig_5/fig_5f.png", width = 5.5, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(new_death, death_event) ~ b8t_bin, data = fig_5e) %>% 
         ggsurvplot(pval = T, 
                    palette = viridis(2, end = 0.95, direction = -1),
                    risk.table = T,
+                   title = "F.",
                    risk.table.height = 0.3,
                    risk.table.title = "No. at risk",
                    legend.title = "B8T\n(Males)", 
+<<<<<<< HEAD
                    legend.labs = c("Hi/Hi", "All other"),
                    xlab = "Overall Survival (Months)",
                    #subtitle="C2     Male MIBC",
+=======
+                   legend.labs = c("Hi/Hi", "Other"),
+                   xlab = "Overall Survival (Months)", 
+>>>>>>> 2b480769ac0dace750ae34f138d4835690a4e216
                    legend = "right",
                    xscale = 30,
                    break.x.by = 300,
+                   xlim = c(0, 1800),
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 12,
-                   xlim = c(0, 1800),
+                   font.legend = 15,
+                   fontsize = 5,
                    pval.coord = c(0, 0.05))
+ggsurv$plot <- ggsurv$plot + 
+        theme(plot.title.position = "plot",
+              plot.title = element_text(face = "bold", size = 27),
+              axis.title.y = element_text(size = 20),
+              axis.title.x = element_text(size = 20))
 ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank())
+              axis.line = element_blank(),
+              plot.title = element_text(size = 20))
 ggsurv
 dev.off()
+
