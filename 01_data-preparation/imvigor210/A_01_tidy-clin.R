@@ -10,6 +10,16 @@
 
 library(tidyverse)
 library(xml2)
+library(pointr)
+
+token <- sharepoint_token()
+
+
+# Read in Data -------------------------------------------------------
+
+imvigor_clin <- sharepoint_get("https://livejohnshopkins.sharepoint.com/sites/GBCIStorage/Shared%20Documents/Datasets/ImVigor210/samples.zip", token)
+file.rename(imvigor_clin, "./data/imvigor210/clin.zip")
+unzip("./data/imvigor210/clin.zip", exdir = "./data/imvigor210")
 
 
 # Tidy Data ---------------------------------------------------------------
