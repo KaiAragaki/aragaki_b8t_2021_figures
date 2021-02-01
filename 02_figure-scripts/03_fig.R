@@ -14,6 +14,8 @@ library(survminer)
 library(viridis)
 library(DESeq2)
 library(broom)
+library(VennDiagram)
+
 
 
 # Read in Data ------------------------------------------------------------
@@ -324,3 +326,36 @@ hihi_tmb_hi_hi <- best %>%
         filter(b8t == "hi_hi", 
                IC.Level == "IC2+", 
                tmb_bins == "Hi")
+
+###Venn diagram for b8t-hi/hi, IC2+ and TMB-Hi
+fig_3f <- list(tmb_hi=col_data%>%filter(tmb_bins=="Hi")%>%filter(!is.na(tmb_bins))%>%select(sample)%>%unlist,
+               IC2=col_data%>%filter(IC.Level=="IC2+")%>%filter(!is.na(tmb_bins))%>%select(sample)%>%unlist,
+               b8t_hi_hi=col_data%>%filter(b8t=="hi_hi")%>%filter(!is.na(tmb_bins))%>%select(sample)%>%unlist)
+
+venn.plot <- venn.diagram( fig_3f,
+              height = 480, width = 480, resolution = 300, units='px',
+              compression = "lzw",
+              filename = "./figures/fig_3/fig_3f.png",
+              output=TRUE,
+              category.names = c("TMB Hi", "IC2+", "B8T Hi/Hi"),
+              col=c("#440154ff", '#21908dff', '#c7e020ff'),
+              fill = c(alpha("#440154ff",0.8), alpha('#21908dff',0.8), alpha('#c7e020ff',0.8)),
+              main="F.",
+              main.col='black',
+              main.cex=1,
+              main.pos=c(0.1,1),
+              lty = "blank",
+              lwd=1,
+              cex = 0.6,
+              #fontface = "bold",
+              cat.cex = 0.6,
+              #cat.fontface = "bold",
+              cat.col = "black",#c("#440154ff", '#21908dff', '#c7e020ff'),
+              cat.pos = c(90, -90,0),
+              cat.dist = c(-0.08,-0.08,-0.08),
+              rotation = 1,
+              rotation.degree = 180,
+              margin=0)
+
+
+
