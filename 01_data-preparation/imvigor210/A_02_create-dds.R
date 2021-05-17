@@ -6,7 +6,7 @@
 
 # Prepare Workspace -------------------------------------------------------
 
-library(pointr)
+library(sharepointr)
 library(readr)
 library(DESeq2)
 

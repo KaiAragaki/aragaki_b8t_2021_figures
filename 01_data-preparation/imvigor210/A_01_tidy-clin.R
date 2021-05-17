@@ -10,7 +10,7 @@
 
 library(tidyverse)
 library(xml2)
-library(pointr)
+library(sharepointr)
 
 token <- sharepoint_token()
 

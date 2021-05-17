@@ -50,17 +50,17 @@ get_latest <- function(data) {
                 mutate(collapsed = if_else(!is.infinite(max(c_across(), na.rm = T)), 
                                            max(c_across(), na.rm = T), 
                                            NA_real_)) %>% 
-                select(collapsed)
+                dplyr::select(collapsed)
 }
 
 death <- 
         clin_filtered %>%
-        select(contains("days_to_death")) %>% 
+        dplyr::select(contains("days_to_death")) %>% 
         get_latest()
 
 fl <- 
         clin_filtered %>%
-        select(contains("days_to_last_followup")) %>% 
+        dplyr::select(contains("days_to_last_followup")) %>% 
         get_latest()
 
 all_clin <- 
