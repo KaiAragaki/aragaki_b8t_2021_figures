@@ -12,7 +12,7 @@ library(gt)
 library(broom)
 
 
-# Read in Data ------------------------------------------------------------
+# Read in Data -----------------------------------------------------------------
 
 blca <- read_rds("./data/tcga-blca/C_04_merge-gsva.rds")
 
@@ -24,18 +24,20 @@ clin <- as_tibble(colData(blca)) %>%
         unite(b8t, b.bin, t.bin, sep = ".", remove = F) %>% 
         mutate(sex = patient.gender,
                race = patient.race_list.race,
-               b8t = factor(b8t, levels = c("hi.lo", "lo.lo", "lo.hi", "hi.hi"))) %>% 
-        select(sex, race, contains("metastat"), contains("stage"), 
+               b8t = factor(b8t, 
+                            levels = c("Lo.Lo", "Lo.Hi", "Hi.Lo", "Hi.Hi"),
+                            labels = c("Lo/Lo", "Lo/Hi", "Hi/Lo", "Hi/Hi"))) %>% 
+        dplyr::select(sex, race, contains("metastat"), contains("stage"), 
                contains("age"), contains("smok"), contains("grade"), contains("lund"), 
                contains("mRNA"), "b8t", new_death, death_event, contains("sample.days_to_collection")) %>% 
-        select(!contains("file")) %>% 
+        dplyr::select(!contains("file")) %>% 
         mutate(met_site = case_when(patient.metastatic_site_list.metastatic_site == "other" ~ patient.other_metastatic_site,
                                     T ~ patient.metastatic_site_list.metastatic_site)) %>% 
         unite(met_site, met_site, 
               patient.metastatic_site_list.metastatic_site.2, 
               patient.metastatic_site_list.metastatic_site.3, na.rm = T) %>% 
         mutate(met_site = if_else(met_site == "", NA_character_, met_site)) %>% 
-        select(-contains("prostate"), -contains("metastatic_site"), 
+        dplyr::select(-contains("prostate"), -contains("metastatic_site"), 
                -contains("metastatic_procedure"), -contains("gleason"), 
                -contains("dosage"), -contains("image"), -contains("omf")) %>% 
         dplyr::rename(stage = patient.stage_event.pathologic_stage,
@@ -48,7 +50,7 @@ clin <- as_tibble(colData(blca)) %>%
                       age = patient.age_at_initial_pathologic_diagnosis,
                       days_to_collection = patient.samples.sample.days_to_collection,
                       pack_years = patient.number_pack_years_smoked) %>% 
-        select(-patient.stage_event.system_version, -stage) %>%  
+        dplyr::select(-patient.stage_event.system_version, -stage) %>%  
         relocate(age, .after = age_smoking_start) %>% 
         mutate(stage_ct = case_when(str_detect(stage_ct, "t1") ~ "t1",
                                     str_detect(stage_ct, "t2") ~ "t2",
@@ -64,31 +66,36 @@ clin <- as_tibble(colData(blca)) %>%
                                     str_detect(stage_pt, "t4") ~ "t4",
                                     T ~ stage_pt),
                met_site_bin = case_when(met_site == "lymph node only" ~ "Lymph Node",
-                                         met_site == "none" ~ "None",
-                                         is.na(met_site) ~ NA_character_,
-                                         T ~ "Other"),
+                                        met_site == "none" ~ "None",
+                                        is.na(met_site) ~ NA_character_,
+                                        T ~ "Other"),
+               met_site_bin = factor(met_site_bin, levels = c("None", "Lymph Node", "Other")),
                node_bin = case_when(stage_n %in% c("n1", "n2", "n3") ~ ">N0",
                                     stage_n == "n0" ~ "N0",
                                     stage_n == "nx" ~ "Nx",
                                     T ~ stage_n),
+               node_bin = factor(node_bin, levels = c("N0", ">N0", "Nx")),
                stage_m = case_when(stage_m == "m0" ~ "M0",
-                                    stage_m == "m1" ~ "M1",
-                                    stage_m == "mx" ~ "Mx",
-                                    T ~ stage_m),
+                                   stage_m == "m1" ~ "M1",
+                                   stage_m == "mx" ~ "Mx",
+                                   T ~ stage_m),
                mRNA.cluster = factor(mRNA.cluster, 
                                      levels = c("Basal_squamous", "Luminal", "Luminal_infiltrated", "Luminal_papillary", "Neuronal"),
                                      labels = c("Basal Squamous", "Luminal", "Luminal Infiltrated", "Luminal Papillary", "Neuronal")),
-               grade = factor(grade, levels = c("low grade", "high grade"), labels = c("Low", "High"))) %>% 
+               grade = factor(grade, levels = c("low grade", "high grade"), labels = c("Low", "High")),
+               sex = factor(sex,
+                            levels = c("male", "female"),
+                            labels = c("Male", "Female"))) %>% 
         select(-stage_ct, -stage_pt, -met_site, -stage_n) %>% 
         mutate(across(where(is.character), as.factor))
 
 # Didn't do stage_pt_bin because it was causing convergence issues due to low <t2.
 
-# Univariate ---------------------------------------------------------
+# Univariable ------------------------------------------------------------------
 
-# Logrank Test -------------------------------------------------------------
+## Log-rank Test ---------------------------------------------------------------
 
-# Cutoff for consideration in multivariate analysis ("denoted 'sig'"): 
+# Cutoff for consideration in multivariable analysis (denoted 'sig'): 
 # p < 0.15
 
 lr <- function(var) {
@@ -100,15 +107,13 @@ lr <- function(var) {
                 relocate(name)
 }
 
-vars <- colnames(clin)
-
-vars <- vars[-which(vars %in% c("new_death", "death_event"))]
+vars <- clin %>% 
+        dplyr::select(-new_death, -death_event) %>% 
+        colnames()
 
 df <- data.frame()
 for (i in seq_along(vars)) {
         df <- rbind(df, as.vector(lr(vars[i])))
-        
-        
 }
 
 df <- df %>% 
@@ -120,7 +125,7 @@ df <- df %>%
                                  T ~ "(NS)"))
 
 df_sig <- df %>% 
-        filter(p.value.sc < 0.15) %>% 
+        filter(p.value.sc < 0.15 | name %in% c("sex", "b8t")) %>% 
         unite(term_2, name, stars, remove = F, sep = " ") %>% 
         select(-stars)
 
@@ -133,7 +138,7 @@ wl <- function(var) {
         feature <- var
         var <- clin[[var]]
         coxph(Surv(new_death, death_event) ~ var, data = clin) %>% 
-                tidy(exponentiate = T) %>%  
+                tidy(exponentiate = TRUE, conf.int = TRUE) %>%  
                 mutate(feature = feature) %>% 
                 relocate(feature) %>% 
                 retidy()
@@ -176,38 +181,39 @@ df %>%
                                  T ~ "NS")) %>% 
         left_join(df_sig, by = c("feature" = "name")) %>%
         dplyr::rename("HR" = estimate,
-                      "SE" = std.error,
                       "p-value" = p.value,
                       " " = stars) %>%
-        select(-feature, -p.value.sc) %>% 
+        select(-feature, -p.value.sc, -std.error) %>% 
         relocate("p-value", .before =  " ") %>% 
-        mutate(term_2 = case_when(str_detect(term_2, "stage_m")            ~ "Metastasis",
-                                  str_detect(term_2, "age")                ~ "Age",
-                                  str_detect(term_2, "grade")              ~ "Grade",
-                                  str_detect(term_2, "mRNA.cluster")       ~ "TCGA Subtype",
-                                  str_detect(term_2, "days_to_collection") ~ "Days to Collection",
-                                  str_detect(term_2, "met_site_bin")       ~ "Site of Metastasis",
-                                  str_detect(term_2, "node_bin")           ~ "Node Status",
-                                  T                               ~ term_2)) %>% 
+        mutate(term_2 = str_replace(term_2, "stage_m", "Metastasis"),
+               term_2 = str_replace(term_2, "age", "Age"),
+               term_2 = str_replace(term_2, "grade", "Grade"),
+               term_2 = str_replace(term_2, "mRNA.cluster", "TCGA Subtype"),
+               term_2 = str_replace(term_2, "days_to_collection", "Days to Collection"),
+               term_2 = str_replace(term_2, "met_site_bin", "Site of Metastsis"),
+               term_2 = str_replace(term_2, "node_bin", "Node Status"),
+               term_2 = str_replace(term_2, "sex", "Sex"),
+               term_2 = str_replace(term_2, "b8t", "B8T")) %>%
         gt(groupname_col = "term_2",
            rowname_col = "term") %>% 
-        fmt_number(columns = 2:3, drop_trailing_zeros = T) %>% 
-        fmt_scientific(columns = 4, decimals = 2) %>% 
+        fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
+        fmt_missing(columns = 1:6, missing_text = "") %>%
+        fmt_scientific(columns = 5, decimals = 2) %>% 
+        cols_merge(columns = c("conf.low", "conf.high"),
+                   pattern = "{1}-{2}") %>%
+        cols_label(conf.low = "CI (95%)") %>%
         cols_align("center") %>% 
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
-        fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Univariate Hazard Ratios") %>% 
+        tab_header(title = "Univariable Hazard Ratios") %>% 
         tab_footnote("Features not trending significant (P < 0.15) by logrank test: Sex, Race, Age Started Smoking, B8T, Clinical Stage",
                      locations = cells_column_labels("p-value")) %>% 
         tab_footnote("p-value by logrank test (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
                      location = cells_row_groups(starts_with("stage_m"))) %>% 
-        cols_width(vars(`p-value`) ~ px(130),
-                   vars(HR, SE, " ") ~ px(60)) %>%
-        tab_options(table.width = px(500)) %>% 
+        cols_width(vars(`p-value`, `conf.low`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
         gtsave("./figures/tables/risk_table_uni_blca.png") 
-
-
 
 
 # Multivariate -------------------------------------------------------
