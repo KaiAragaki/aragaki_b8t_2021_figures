@@ -62,8 +62,8 @@ lr <- function(var) {
                 relocate(name)
 }
 
-vars <- clin |> 
-        dplyr::select(-os, censOS) |> 
+vars <- clin %>% 
+        dplyr::select(-os, censOS) %>% 
         colnames()
 
 df <- data.frame()
