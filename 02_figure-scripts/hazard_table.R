@@ -1,6 +1,8 @@
 
 # Description -------------------------------------------------------------
 
+# Hazard Tables for Univariable and Multivariable Models
+
 
 # Prepare Workspace -------------------------------------------------------
 
@@ -33,7 +35,9 @@ clin <- as_tibble(colData(imvigor)) %>%
                Lund = factor(Lund),
                Lund2 = factor(Lund2),
                Immune.phenotype = factor(Immune.phenotype),
-               b8t = factor(b8t, levels = c("Hi.Lo", "Lo.Lo", "Lo.Hi", "Hi.Hi"), labels = c("Hi/Lo", "Lo/Lo", "Lo/Hi", "Hi/Hi"))) %>% 
+               b8t = factor(b8t, 
+                            levels = c("Lo.Lo", "Hi.Lo", "Lo.Hi", "Hi.Hi"), 
+                            labels = c("Lo/Lo", "Hi/Lo", "Lo/Hi", "Hi/Hi"))) %>% 
         select(-sample, -subject_id, -contains("_null"), -ENA.CHECKLIST, 
                -sizeFactor, -tag, -val, -binaryResponse, 
                -Best.Confirmed.Overall.Response, -Enrollment.IC, -TC.Level, -b_cell,
@@ -41,12 +45,12 @@ clin <- as_tibble(colData(imvigor)) %>%
         relocate(Lund2, .before = "Lund")
 
 
-# Univariate ---------------------------------------------------------------
+# Univariable ------------------------------------------------------------------
 
 
-# Logrank Test -------------------------------------------------------------
+## Log-Rank Test ---------------------------------------------------------------
 
-# Cutoff for consideration in multivariate analysis ("denoted 'sig'"): 
+# Cutoff for consideration in multivariable analysis: 
 # p < 0.15
 
 lr <- function(var) {
@@ -58,15 +62,13 @@ lr <- function(var) {
                 relocate(name)
 }
 
-vars <- colnames(clin)
-
-vars <- vars[-which(vars %in% c("os", "censOS"))]
+vars <- clin |> 
+        dplyr::select(-os, censOS) |> 
+        colnames()
 
 df <- data.frame()
 for (i in seq_along(vars)) {
         df <- rbind(df, as.vector(lr(vars[i])))
-        
-        
 }
 
 df <- df %>% 
@@ -91,7 +93,7 @@ df_sig <- df %>%
 # TCGA subtype
 
 
-# Cox with Levels ---------------------------------------------------------
+# Cox with Levels --------------------------------------------------------------
 
 # Now look at coxph ratios for each level that reached ss
 
@@ -99,7 +101,7 @@ wl <- function(var) {
         feature <- var
         var <- clin[[var]]
         coxph(Surv(os, censOS) ~ var, data = clin) %>% 
-                tidy(exponentiate = T) %>%  
+                tidy(exponentiate = TRUE, conf.int = TRUE) %>%  
                 mutate(feature = feature) %>% 
                 relocate(feature) %>% 
                 retidy()
@@ -132,7 +134,7 @@ for (i in seq_along(vars)) {
 }
 
 
-# Make Table ---------------------------------------------------------
+# Make Table -------------------------------------------------------------------
 
 df %>% 
         mutate(stars = case_when(p.value < 0.001 ~ "***",
@@ -142,10 +144,9 @@ df %>%
                                  T ~ "NS")) %>% 
         left_join(df_sig, by = c("feature" = "name")) %>%
         dplyr::rename("HR" = estimate,
-                      "SE" = std.error,
                       "p-value" = p.value,
                       " " = stars) %>%
-        select(-feature, -p.value.sc) %>% 
+        dplyr::select(-feature, -p.value.sc, -std.error) %>% 
         relocate("p-value", .before =  " ") %>% 
         mutate(term_2 = str_replace_all(term_2, "\\.", " "),
                term_2 = str_replace(term_2,"IC Level", "PDL1 IC Level"),
@@ -160,24 +161,27 @@ df %>%
                term_2 = str_replace(term_2, "t bin", "CD8TGS")) %>% 
         gt(groupname_col = "term_2",
            rowname_col = "term") %>% 
-        fmt_number(columns = 2:3, drop_trailing_zeros = T) %>% 
-        fmt_scientific(columns = 4, decimals = 2) %>% 
+        fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = 5, decimals = 2) %>% 
         cols_align("center") %>% 
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
         fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Univariate Hazard Ratios") %>% 
+        cols_merge(columns = c("conf.low", "conf.high"),
+                   pattern = "{1}-{2}") %>%
+        cols_label(conf.low = "CI (95%)") %>%
+        tab_header(title = "Univariable Hazard Ratios") %>% 
         tab_footnote("Features not trending significant (P < 0.15) by logrank test: Sex, Race, Intravesical BCG, Tobacco Use History, TCGA Subtype, Tissue Site",
                      locations = cells_column_labels("p-value")) %>% 
         tab_footnote("p-value by logrank test (*** < 0.001, ** < 0.01, * < 0.05, # < 0.15)",
                      location = cells_row_groups(starts_with("PDL1"))) %>% 
-        cols_width(vars(`p-value`) ~ px(130),
-                   vars(HR, SE, " ") ~ px(60)) %>%
-        tab_options(table.width = px(500)) %>% 
+        cols_width(vars(`p-value`, conf.low) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
         gtsave("./figures/tables/risk_table_uni.png") 
 
 
-# Multivariate -------------------------------------------------------
+# Multivariable ----------------------------------------------------------------
 
 retidy <- function(df) {
         df %>% 
@@ -207,29 +211,30 @@ clin_complete <- clin_complete[complete.cases(clin_complete),]
 mv <- coxph(Surv(os, censOS) ~ b8t + IC.Level + Neoantigen.burden.per.MB + 
                     Baseline.ECOG.Score + Met.Disease.Status + Received.platinum + 
                     Lund2, data = clin_complete) %>% 
-        tidy(exponentiate = T) %>%
+        tidy(exponentiate = TRUE, conf.int = TRUE) %>%
         retidy() %>% 
         group_by(feature) %>% 
         group_split() %>% 
         lapply(make_reflevel_table) %>% 
         bind_rows() %>% 
-        mutate(stars = case_when(p.value < 0.001 ~ "(***)",
-                                 p.value < 0.01 ~ "(**)",
-                                 p.value < 0.05 ~ "(*)",
-                                 T ~ "(NS)"))  %>% 
-        filter(feature != "Received.platinum")
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 T ~ "NS"))  %>% 
+        filter(feature != "Received.platinum") %>%
+        mutate(stars = if_else(is.na(p.value), "", stars))
 
 # Not significant:
 # Received platinum
 
 
-# Make Table ---------------------------------------------------------
+# Make Table -------------------------------------------------------------------
 
 mv %>% 
         dplyr::rename("HR" = estimate,
-                      "SE" = std.error,
                       "p-value" = p.value,
                       " " = stars) %>%
+        dplyr::select(-std.error) %>%
         mutate(feature = str_replace_all(feature, "\\.", " "),
                feature = str_replace(feature, "FMOne mutation burden per MB", "Mutation Burden/MB"),
                feature = str_replace(feature, "Received platinum", "Received Platinum"),
@@ -238,17 +243,21 @@ mv %>%
                feature = str_replace(feature, "b8t", "B8T")) %>% 
         gt(groupname_col = "feature",
            rowname_col = "term") %>% 
-        fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
-        fmt_scientific(columns = 5, decimals = 2) %>% 
+        fmt_number(columns = c(3, 5, 6), drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = 4, decimals = 2) %>% 
+        fmt_missing(columns = 1:6, missing_text = "") %>%
         cols_align("center") %>% 
+        cols_merge(columns = c("conf.low", "conf.high"),
+                   pattern = "{1}-{2}") %>%
+        cols_label(conf.low = "CI (95%)") %>%
+        cols_move("conf.low", "HR") %>%
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
-        fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Multivariate Hazard Ratios") %>% 
+        tab_header(title = "Multivariable Hazard Ratios") %>% 
         tab_footnote("Feature not significant (P < 0.05) by logrank test: Received Platinum",
                      locations = cells_column_labels("p-value")) %>% 
-        cols_width(vars(`p-value`) ~ px(130),
-                   vars(HR, SE, " ") ~ px(60)) %>%
-        tab_options(table.width = px(500)) %>% 
+        cols_width(vars(`p-value`, `conf.low`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
         gtsave("./figures/tables/risk_table_multi.png") 
 
