@@ -62,10 +62,8 @@ ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank(),
-              plot.title = element_text(size = 20))
+              axis.line = element_blank())
 ggsurv
 dev.off()
 
@@ -135,10 +133,8 @@ ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank(),
-              plot.title = element_text(size = 20))
+              axis.line = element_blank())
 ggsurv
 dev.off()
 
@@ -175,10 +171,8 @@ ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank(),
-              plot.title = element_text(size = 20))
+              axis.line = element_blank())
 ggsurv
 dev.off()
 
@@ -219,10 +213,8 @@ ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank(),
-              plot.title = element_text(size = 20))
+              axis.line = element_blank())
 ggsurv
 dev.off()
 
@@ -259,10 +251,8 @@ ggsurv$table <- ggsurv$table +
         ylab(NULL) + 
         xlab(NULL) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size = 15),
               axis.ticks = element_blank(),
-              axis.line = element_blank(),
-              plot.title = element_text(size = 20))
+              axis.line = element_blank())
 ggsurv
 dev.off()
 

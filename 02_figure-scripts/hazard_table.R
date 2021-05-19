@@ -204,7 +204,7 @@ make_reflevel_table <- function(df) {
 
 clin_complete <- dplyr::select(clin, b8t, IC.Level, Neoantigen.burden.per.MB, 
                              Baseline.ECOG.Score, Met.Disease.Status, 
-                             Received.platinum, Lund2, os, censOS)
+                             Received.platinum, Lund2, gender, os, censOS)
 clin_complete <- clin_complete[complete.cases(clin_complete),]
 
 
@@ -226,6 +226,42 @@ mv <- coxph(Surv(os, censOS) ~ b8t + IC.Level + Neoantigen.burden.per.MB +
 
 # Not significant:
 # Received platinum
+
+male <- filter(clin_complete, gender == "male")
+female <- filter(clin_complete, gender == "female")
+
+mv_male <- coxph(Surv(os, censOS) ~  b8t + IC.Level + Neoantigen.burden.per.MB + 
+                         Baseline.ECOG.Score + Met.Disease.Status + Lund2, data = male) %>% 
+        tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+        retidy() %>% 
+        group_by(feature) %>% 
+        group_split() %>% 
+        lapply(make_reflevel_table) %>% 
+        bind_rows() %>% 
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 T ~ "NS"))  %>% 
+        select(-std.error) %>% 
+        filter(feature != "Received.platinum") %>%
+        mutate(stars = if_else(is.na(p.value), "", stars))
+
+mv_female <- coxph(Surv(os, censOS) ~  b8t + IC.Level + Neoantigen.burden.per.MB + 
+                         Baseline.ECOG.Score + Met.Disease.Status +Lund2, data = female) %>% 
+        tidy(exponentiate = TRUE, conf.int = TRUE) %>%
+        retidy() %>% 
+        group_by(feature) %>% 
+        group_split() %>% 
+        lapply(make_reflevel_table) %>% 
+        bind_rows() %>% 
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 T ~ "NS"))  %>% 
+        select(-std.error) %>% 
+        filter(feature != "Received.platinum") %>%
+        mutate(stars = if_else(is.na(p.value), "", stars))
+
 
 
 # Make Table -------------------------------------------------------------------
@@ -260,4 +296,52 @@ mv %>%
                    vars(HR, " ") ~ px(60)) %>%
         tab_options(table.width = px(600)) %>% 
         gtsave("./figures/tables/risk_table_multi.png") 
+
+mv_male %>% 
+        dplyr::rename("HR" = estimate,
+                      "p-value" = p.value,
+                      " " = stars) %>%
+        mutate(feature = str_replace_all(feature, "\\.", " "),
+               feature = str_replace(feature, "b8t", "B8T")) %>% 
+        relocate(`p-value`, .before = " ") %>%
+        gt(groupname_col = "feature",
+           rowname_col = "term") %>% 
+        fmt_number(columns = c(3, 4, 5), drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = 6, decimals = 2) %>% 
+        fmt_missing(columns = 1:6, missing_text = "") %>%
+        cols_align("center") %>% 
+        cols_merge(columns = c("conf.low", "conf.high"),
+                   pattern = "{1}-{2}") %>%
+        cols_label(conf.low = "CI (95%)") %>%
+        tab_style(style = cell_text(align = "right"), 
+                  locations = cells_stub()) %>% 
+        tab_header(title = "Multivariable Hazard Ratios (Male)") %>% 
+        cols_width(vars(`p-value`, `conf.low`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
+        gtsave("./figures/tables/risk_table_multi_male.png") 
+
+mv_female %>% 
+        dplyr::rename("HR" = estimate,
+                      "p-value" = p.value,
+                      " " = stars) %>%
+        mutate(feature = str_replace_all(feature, "\\.", " "),
+               feature = str_replace(feature, "b8t", "B8T")) %>% 
+        relocate(`p-value`, .before = " ") %>%
+        gt(groupname_col = "feature",
+           rowname_col = "term") %>% 
+        fmt_number(columns = c(3, 4, 5), drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = 6, decimals = 2) %>% 
+        fmt_missing(columns = 1:6, missing_text = "") %>%
+        cols_align("center") %>% 
+        cols_merge(columns = c("conf.low", "conf.high"),
+                   pattern = "{1}-{2}") %>%
+        cols_label(conf.low = "CI (95%)") %>%
+        tab_style(style = cell_text(align = "right"), 
+                  locations = cells_stub()) %>% 
+        tab_header(title = "Multivariable Hazard Ratios (Female)") %>% 
+        cols_width(vars(`p-value`, `conf.low`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
+        gtsave("./figures/tables/risk_table_multi_female.png") 
 

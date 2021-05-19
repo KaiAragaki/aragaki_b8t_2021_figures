@@ -216,10 +216,11 @@ df %>%
         gtsave("./figures/tables/risk_table_uni_blca.png") 
 
 
-# Multivariate -------------------------------------------------------
+# Multivariable ----------------------------------------------------------------
 
 complete_clin <- clin %>% 
-        select(b8t, sex, stage_m, age, grade, mRNA.cluster, days_to_collection, met_site_bin, node_bin, new_death, death_event)
+        select(b8t, sex, stage_m, age, grade, mRNA.cluster, days_to_collection, 
+               met_site_bin, node_bin, new_death, death_event)
 
 complete_clin <- complete_clin[complete.cases(complete_clin),]
 
@@ -242,56 +243,135 @@ make_reflevel_table <- function(df) {
         df
 }
 
-mv <- coxph(Surv(new_death, death_event) ~ b8t*sex + stage_m + age + grade + mRNA.cluster + days_to_collection + met_site_bin + node_bin, data = complete_clin) %>% 
-        tidy(exponentiate = T) %>%
+mv <- coxph(Surv(new_death, death_event) ~ b8t + stage_m + age + mRNA.cluster + 
+                    met_site_bin + node_bin + sex + grade, data = complete_clin) %>% 
+        tidy(exponentiate = T, conf.int = T) %>%
         retidy() %>% 
         group_by(feature) %>% 
         group_split() %>% 
         lapply(make_reflevel_table) %>% 
         bind_rows() %>% 
-        mutate(stars = case_when(p.value < 0.001 ~ "(***)",
-                                 p.value < 0.01 ~ "(**)",
-                                 p.value < 0.05 ~ "(*)",
-                                 T ~ "(NS)")) %>% 
-        filter(!(feature %in% c("grade", "met_site_bin", "node_bin", "stage_m")))
+        select(-std.error) %>% 
+        filter(!(feature %in% c("grade", "met_site_bin", "node_bin", "stage_m"))) %>% 
+        mutate(conf.low = round(conf.low, 2),
+               conf.high = round(conf.high, 2)) %>% 
+        unite(`CI (95%)`, conf.low, conf.high, sep = "-", na.rm = T) 
 
-# Not significant:
-# Grade, Met_Site_Bin, Node_Bin, Sex, Stage_M
+male <- filter(complete_clin, sex == "Male")
+female <- filter(complete_clin, sex == "Female")
 
+mv_male <- coxph(Surv(new_death, death_event) ~  b8t + stage_m + age + mRNA.cluster + met_site_bin + node_bin + grade, data = male) %>% 
+        tidy(exponentiate = T, conf.int = T) %>%
+        retidy() %>% 
+        group_by(feature) %>% 
+        group_split() %>% 
+        lapply(make_reflevel_table) %>% 
+        bind_rows() %>% 
+        select(-std.error) %>% 
+        filter(!(feature %in% c("grade", "met_site_bin", "node_bin", "stage_m"))) %>% 
+        mutate(conf.low = round(conf.low, 2),
+               conf.high = round(conf.high, 2)) %>% 
+        unite(`CI (95%)`, conf.low, conf.high, sep = "-", na.rm = T) 
+
+mv_female <- coxph(Surv(new_death, death_event) ~ b8t + stage_m + age + mRNA.cluster + met_site_bin + node_bin + grade, data = female) %>% 
+        tidy(exponentiate = T, conf.int = T) %>%
+        retidy() %>% 
+        group_by(feature) %>% 
+        group_split() %>% 
+        lapply(make_reflevel_table) %>% 
+        bind_rows() %>% 
+        select(-std.error) %>% 
+        filter(!(feature %in% c("grade", "met_site_bin", "node_bin", "stage_m"))) %>% 
+        mutate(conf.low = round(conf.low, 2),
+               conf.high = round(conf.high, 2)) %>% 
+        unite(`CI (95%)`, conf.low, conf.high, sep = "-", na.rm = T) 
 
 # Make Table ---------------------------------------------------------
 
 mv %>% 
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 is.na(p.value) ~ "",
+                                 T ~ "NS")) %>% 
         dplyr::rename("HR" = estimate,
-                      "SE" = std.error,
                       "p-value" = p.value,
                       " " = stars) %>%
         mutate(feature = str_replace(feature, "b8t", "B8T"),
-               term = str_replace(term, "Hi.Lo", "Hi/Lo"),
-               term = str_replace(term, "Lo.Lo", "Lo/Lo"),
-               term = str_replace(term, "Lo.Hi", "Lo/Hi"),
-               term = str_replace(term, "Hi.Hi", "Hi/Hi"),
-               term = str_replace(term, "(?<!fe)male", "Male"),
-               term = str_replace(term, "female", "Female"),
-               term = str_remove(term, "sex"),
                feature = case_when(str_detect(feature, "age") ~ "Age",
                                    str_detect(feature, "mRNA.cluster") ~ "TCGA Subtype",
-                                   str_detect(feature, "days_to_collection") ~ "Days to Collection",
                                    str_detect(feature, "sex") ~ "Sex",
                                    T ~ feature)) %>% 
+        relocate(`CI (95%)`, .before = `p-value`) %>%
         gt(groupname_col = "feature",
            rowname_col = "term") %>% 
-        fmt_number(columns = 2:4, drop_trailing_zeros = T) %>% 
-        fmt_scientific(columns = 5, decimals = 2) %>% 
+        fmt_number(columns = c(2), drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = c(4)) %>%
         cols_align("center") %>% 
         tab_style(style = cell_text(align = "right"), 
                   locations = cells_stub()) %>% 
-        fmt_missing(columns = 1:6, missing_text = "") %>%
-        tab_header(title = "Multivariate Hazard Ratios") %>% 
-        tab_footnote("B8T and Sex are not significant (p < 0.15) in the univariable analysis, but are included here to be complete",
-                     locations = cells_column_labels("p-value")) %>% 
-        cols_width(vars(`p-value`) ~ px(130),
-                   vars(HR, SE, " ") ~ px(60)) %>%
-        tab_options(table.width = px(500)) %>% 
+        fmt_missing(columns = 1:5, missing_text = "") %>%
+        tab_header(title = "Multivariable Hazard Ratios") %>%
+        tab_footnote("Days to Collection, though statistically significant (p < 0.05) had an HR that approximated 1 (0.9997)",
+                     location = cells_column_labels(starts_with("CI"))) %>% 
+        tab_footnote("B8T and Sex are not significant (p < 0.15) in the univariable analysis, but are included here to be complete.",
+                     location = cells_row_groups(starts_with("B8T"))) %>% 
+        cols_width(vars(`p-value`, `CI (95%)`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
         gtsave("./figures/tables/risk_table_multi_blca.png") 
 
+mv_male %>% 
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 is.na(p.value) ~ "",
+                                 T ~ "NS")) %>% 
+        dplyr::rename("HR" = estimate,
+                      "p-value" = p.value,
+                      " " = stars) %>%
+        mutate(feature = str_replace(feature, "b8t", "B8T"),
+               feature = case_when(str_detect(feature, "age") ~ "Age",
+                                   str_detect(feature, "mRNA.cluster") ~ "TCGA Subtype",
+                                   T ~ feature)) %>% 
+        relocate(`CI (95%)`, .before = `p-value`) %>%
+        gt(groupname_col = "feature",
+           rowname_col = "term") %>% 
+        fmt_number(columns = c(2), drop_trailing_zeros = T) %>% 
+        fmt_scientific(columns = c(4)) %>%
+        cols_align("center") %>% 
+        tab_style(style = cell_text(align = "right"), 
+                  locations = cells_stub()) %>% 
+        fmt_missing(columns = 1:5, missing_text = "") %>%
+        tab_header(title = "Multivariable Hazard Ratios (Male)") %>% 
+        cols_width(vars(`p-value`, `CI (95%)`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>% 
+        gtsave("./figures/tables/risk_table_multi_blca_male.png") 
+
+mv_female %>% 
+        mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                 p.value < 0.01 ~ "**",
+                                 p.value < 0.05 ~ "*",
+                                 is.na(p.value) ~ "",
+                                 T ~ "NS")) %>% 
+        dplyr::rename("HR" = estimate,
+                      "p-value" = p.value,
+                      " " = stars) %>%
+        mutate(feature = str_replace(feature, "b8t", "B8T"),
+               feature = case_when(str_detect(feature, "age") ~ "Age",
+                                   str_detect(feature, "mRNA.cluster") ~ "TCGA Subtype",
+                                   T ~ feature)) %>% 
+        relocate(`CI (95%)`, .before = `p-value`) %>%
+        gt(groupname_col = "feature",
+           rowname_col = "term") %>% 
+        fmt_number(columns = c(2,4), drop_trailing_zeros = T) %>% 
+        cols_align("center") %>% 
+        tab_style(style = cell_text(align = "right"), 
+                  locations = cells_stub()) %>% 
+        fmt_missing(columns = 1:5, missing_text = "") %>%
+        tab_header(title = "Multivariable Hazard Ratios (Female)") %>% 
+        cols_width(vars(`p-value`, `CI (95%)`) ~ px(130),
+                   vars(HR, " ") ~ px(60)) %>%
+        tab_options(table.width = px(600)) %>%
+        gtsave("./figures/tables/risk_table_multi_blca_female.png") 
