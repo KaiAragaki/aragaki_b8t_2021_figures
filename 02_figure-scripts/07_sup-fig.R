@@ -1,7 +1,6 @@
 
 # Description -------------------------------------------------------------
 
-# ESTIMATE stromal score of imvigor tumors
 
 
 # Prepare Workspace -------------------------------------------------------
