@@ -73,13 +73,21 @@ col_data <- colData(imv) %>%
                             levels = c("lo_lo", "lo_hi", "hi_lo", "hi_hi"),
                             labels = c("Lo/Lo", "Lo/Hi", "Hi/Lo", "Hi/Hi")))
 
+# AOV --------------------------------------------------------------------------
+
+aov(col_data$StromalScore ~ col_data$b8t, data = col_data) %>%
+        summary()
+
+
+t.test(unlist(tt$`Lo/`), unlist(tt$`Hi/Hi`))
+
 ggplot(col_data, aes(x = b8t, y = StromalScore, fill = b8t)) +
         scale_color_viridis_d(option = "plasma", end = 0.8) +
         scale_fill_viridis_d(option = "plasma", end = 0.8) + 
         geom_boxplot(alpha = 0.2) + 
         geom_jitter(aes(color = b8t), alpha = 0.5, width = 0.2, shape = 16) + 
-        theme_tufte() + 
+        theme_tufte(40) + 
         coord_cartesian(ylim = c(0, NA)) +
         labs(x = "B8T Signature") + 
         theme(legend.position = "none")
-ggsave("./figures/fig_s6/fig_s6.png", width = 3, height = 6)
+ggsave("./figures/fig_s6/fig_s6.png", width = 2.5, height = 3)

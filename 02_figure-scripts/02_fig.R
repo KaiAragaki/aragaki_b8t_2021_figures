@@ -313,22 +313,23 @@ plotting <- bind_rows(tmb_hi, b8t_hihi, both) %>%
         mutate(stratum = factor(stratum, levels = c("tmb_hi", "b8t_hi", "tmb_b8t_hi")))
 
 
-png(filename = "./figures/fig_2/fig_2g_ii.png", width = 5.7, height = 5.5, units = "in", res = 288)
+png(filename = "./figures/fig_2/fig_2g_ii.png", width = 5.5, height = 7, units = "in", res = 288)
 ggsurv <- survfit(Surv(os, censOS) ~ stratum, data = plotting) %>% 
         ggsurvplot(risk.table = T,
                    risk.table.height = 0.22,
                    risk.table.title = "No. at risk",
                    palette = viridis(3, end = 0.95),
                    legend.title = "TMB/B8T",
-                   legend.labs = c("TMB Hi, B8T Either", "B8T Hi, TMB Either",
-                                   "B8T & TMB Hi"),
+                   legend.labs = c("TMB Hi, All B8T", "B8T Hi, All TMB",
+                                   "B8T Hi/Hi TMB Hi/Hi"),
                    xlab = "Overall Survival (Months)", 
                    title = "G.",
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
-                   font.legend = 15,
-                   fontsize = 5,
-                   legend = "right")
+                   font.legend = 13,
+                   fontsize = 4,
+                   legend = "top") + 
+        guides(color = guide_legend(nrow = 3))
 ggsurv$plot <- ggsurv$plot + 
         theme(plot.title.position = "plot",
               plot.title = element_text(face = "bold", size = 27),
