@@ -142,8 +142,8 @@ do_ttests <- function(tt_df, col_data) {
                        g2n = as.numeric(group_2),
                        x = (g1n + g2n)/2,
                        length = abs(g2n - g1n),
-                       y = max(col_data$StromalScore) + ((length-1)*.3*max(col_data$StromalScore)) + ((g1n)*.03*max(col_data$StromalScore)),
-                       y_text = if_else(p_star == "NS", y + .06*max(col_data$StromalScore), y + .03*max(col_data$StromalScore)))
+                       y = max(col_data$StromalScore)*1.05 + ((length-1)*.12*max(col_data$StromalScore)) + ((g1n)*.015*max(col_data$StromalScore)),
+                       y_text = if_else(p_star == "NS", y + .03*max(col_data$StromalScore), y + .01*max(col_data$StromalScore)))
 }
 
 imv_ttests <- do_ttests(imv_tt, cd_imv)
@@ -153,16 +153,19 @@ plot_stromal_score <- function(col_data, ttests, filename, plot_title) {
         ggplot(col_data, aes(x = b8t, y = StromalScore)) +
                 scale_color_viridis_d(option = "plasma", end = 0.8) +
                 scale_fill_viridis_d(option = "plasma", end = 0.8) + 
-                geom_boxplot(alpha = 0.2, aes(fill = b8t)) + 
-                geom_jitter(aes(color = b8t), alpha = 0.5, width = 0.2, shape = 16) + 
+                geom_boxplot(alpha = 0.2, aes(fill = b8t), outlier.shape = NA) + 
+                geom_jitter(aes(color = b8t), alpha = 0.3, width = 0.2, shape = 16) + 
                 geom_segment(data = ttests, aes(x = group_1, xend = group_2, y = y, yend = y), color = "black") +
                 geom_text(data = ttests, aes(x = x, y = y_text, label = p_star), size = 12) +
                 theme_tufte(40) + 
-                coord_cartesian(ylim = c(0, NA)) +
+                coord_cartesian(ylim = c(0, max(col_data$StromalScore)), clip = "off") +
                 labs(x = "B8T Signature", title = plot_title) + 
-                theme(legend.position = "none")
-        ggsave(paste0("./figures/fig_s6/", filename), width = 2.5, height = 3) 
+                theme(legend.position = "none",
+                      plot.margin = margin(70, 2, 2, 2, unit = "pt"),
+                      plot.title = element_text(vjust = 20, hjust = -0.75))
+        ggsave(paste0("./figures/fig_s6/", filename), width = 2.5, height = 5) 
 }
 
-plot_stromal_score(cd_imv, imv_ttests, "fig_s6a.png", "IMvigor210")
+plot_stromal_score(cd_imv, imv_ttests, "fig_s6a.png", "  IMvigor210")
 plot_stromal_score(cd_blca, blca_ttests, "fig_s6b.png", "TCGA BLCA")
+
