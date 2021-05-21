@@ -149,7 +149,7 @@ do_ttests <- function(tt_df, col_data) {
 imv_ttests <- do_ttests(imv_tt, cd_imv)
 blca_ttests <- do_ttests(blca_tt, cd_blca)
 
-plot_stromal_score <- function(col_data, ttests, filename) {
+plot_stromal_score <- function(col_data, ttests, filename, plot_title) {
         ggplot(col_data, aes(x = b8t, y = StromalScore)) +
                 scale_color_viridis_d(option = "plasma", end = 0.8) +
                 scale_fill_viridis_d(option = "plasma", end = 0.8) + 
@@ -159,10 +159,10 @@ plot_stromal_score <- function(col_data, ttests, filename) {
                 geom_text(data = ttests, aes(x = x, y = y_text, label = p_star), size = 12) +
                 theme_tufte(40) + 
                 coord_cartesian(ylim = c(0, NA)) +
-                labs(x = "B8T Signature") + 
+                labs(x = "B8T Signature", title = plot_title) + 
                 theme(legend.position = "none")
         ggsave(paste0("./figures/fig_s6/", filename), width = 2.5, height = 3) 
 }
 
-plot_stromal_score(cd_imv, imv_ttests, "fig_s6a.png")
-plot_stromal_score(cd_blca, blca_ttests, "fig_s6b.png")
+plot_stromal_score(cd_imv, imv_ttests, "fig_s6a.png", "IMvigor210")
+plot_stromal_score(cd_blca, blca_ttests, "fig_s6b.png", "TCGA BLCA")
