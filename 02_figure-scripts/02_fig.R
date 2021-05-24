@@ -260,76 +260,28 @@ dev.off()
 # Fig 2g_i: Opposing effects of TMB and B8T with B8T/TMB Hi/Hi/Hi --------------
 
 fig_2g_i <- col_data %>% 
-        dplyr::filter(!is.na(tmb_bins)) %>% 
-        dplyr::filter(tmb_b8t %in% c("Lo_hi_hi", "Hi_lo_lo", "Hi_hi_hi"))
-
-png(filename = "./figures/fig_2/fig_2g_i.png", width = 5.7, height = 5.5, units = "in", res = 288)
-ggsurv <- survfit(Surv(os, censOS) ~ tmb_b8t, data = fig_2g_i) %>% 
-        ggsurvplot(risk.table = T,
+        dplyr::filter(!is.na(tmb_bins)) %>%
+        dplyr::mutate(group = case_when(tmb_bins == "Hi" & b8t == "hi_hi" ~ "TMB Hi, B8T Hi/Hi",
+                                        tmb_bins == "Hi" ~ "TMB Hi, Non-Hi/Hi B8T",
+                                        tmb_bins == "Lo" & b8t == "hi_hi" ~ "TMB Lo, B8T Hi/Hi",
+                                        TRUE ~ NA_character_))
+        
+png(filename = "./figures/fig_2/fig_2g.png", width = 6.2, height = 5.5, units = "in", res = 288)
+ggsurv <- survfit(Surv(os, censOS) ~ group, data = fig_2g_i) %>% 
+        ggsurvplot(risk.table = T, pval = T,
                    risk.table.height = 0.22,
                    risk.table.title = "No. at risk",
                    palette = viridis(3, end = 0.95, direction = -1),
-                   legend.title = "TMB/B8T",
-                   legend.labs = c("Hi/Hi/Hi", "Hi/Lo/Lo", "Lo/Hi/Hi"),
+                   legend.title = "TMB; B8T",
+                   legend.labs = c("Hi; Hi/Hi", "Hi; Non-Hi/Hi", "Lo; Hi/Hi"),
                    xlab = "Overall Survival (Months)", 
                    title = "G.",
                    font.xtickslab = 15, 
                    font.ytickslab = 15, 
                    font.legend = 15,
                    fontsize = 5,
+                   pval.coord = c(0, 0.05),
                    legend = "right")
-ggsurv$plot <- ggsurv$plot + 
-        theme(plot.title.position = "plot",
-              plot.title = element_text(face = "bold", size = 27),
-              axis.title.y = element_text(size = 20),
-              axis.title.x = element_text(size = 20))
-ggsurv$table <- ggsurv$table +
-        ylab(NULL) + 
-        xlab(NULL) +
-        theme(axis.text.x = element_blank(),
-              axis.ticks = element_blank(),
-              axis.line = element_blank())
-ggsurv
-dev.off()
-
-# Fig 2g_ii: Comparing TMB/B8T biomarker performance alone and together --------
-
-filt_na <- col_data %>% 
-        dplyr::filter(!is.na(b8t) & !is.na(tmb_bins))
-
-tmb_hi <- filt_na %>% 
-        dplyr::filter(tmb_bins == "Hi") %>% 
-        mutate(stratum = "tmb_hi")
-
-b8t_hihi <- filt_na %>% 
-        dplyr::filter(b8t == "hi_hi") %>% 
-        mutate(stratum = "b8t_hi")
-
-both <- filt_na %>% 
-        dplyr::filter(tmb_bins == "Hi" & b8t == "hi_hi") %>% 
-        mutate(stratum = "tmb_b8t_hi")
-
-plotting <- bind_rows(tmb_hi, b8t_hihi, both) %>% 
-        mutate(stratum = factor(stratum, levels = c("tmb_hi", "b8t_hi", "tmb_b8t_hi")))
-
-
-png(filename = "./figures/fig_2/fig_2g_ii.png", width = 5.5, height = 7, units = "in", res = 288)
-ggsurv <- survfit(Surv(os, censOS) ~ stratum, data = plotting) %>% 
-        ggsurvplot(risk.table = T,
-                   risk.table.height = 0.22,
-                   risk.table.title = "No. at risk",
-                   palette = viridis(3, end = 0.95),
-                   legend.title = "TMB/B8T",
-                   legend.labs = c("TMB Hi, All B8T", "B8T Hi, All TMB",
-                                   "B8T Hi/Hi TMB Hi/Hi"),
-                   xlab = "Overall Survival (Months)", 
-                   title = "G.",
-                   font.xtickslab = 15, 
-                   font.ytickslab = 15, 
-                   font.legend = 13,
-                   fontsize = 4,
-                   legend = "top") + 
-        guides(color = guide_legend(nrow = 3))
 ggsurv$plot <- ggsurv$plot + 
         theme(plot.title.position = "plot",
               plot.title = element_text(face = "bold", size = 27),
